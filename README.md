@@ -64,8 +64,7 @@ docker run -e ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY -p 2222:2222 ghcr.io/dwmkerr/
 **Helm**
 
 ```bash
-helm repo add dwmkerr https://dwmkerr.github.io/claude-code-agent
-helm install claude-code-agent dwmkerr/claude-code-agent --set apiKey=$ANTHROPIC_API_KEY
+helm install claude-code-agent oci://ghcr.io/dwmkerr/charts/claude-code-agent --set apiKey=$ANTHROPIC_API_KEY
 ```
 
 **DevSpace**
