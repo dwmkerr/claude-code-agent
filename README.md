@@ -19,13 +19,13 @@
 ```bash
 export ANTHROPIC_API_KEY="sk-***"
 npm install && npm run dev
-# Server: http://localhost:2528
+# Server: http://localhost:2222
 ```
 
 Test with curl:
 
 ```bash
-curl -N -X POST http://localhost:2528/ \
+curl -N -X POST http://localhost:2222/ \
   -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","method":"message/stream","params":{"message":{"messageId":"1","contextId":"ctx-1","role":"user","parts":[{"kind":"text","text":"Hello"}]}},"id":1}'
 ```
@@ -35,7 +35,7 @@ curl -N -X POST http://localhost:2528/ \
 ### Docker
 
 ```bash
-docker run -e ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY -p 2528:2528 ghcr.io/dwmkerr/claude-code-agent
+docker run -e ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY -p 2222:2222 ghcr.io/dwmkerr/claude-code-agent
 ```
 
 ### Helm
@@ -81,3 +81,7 @@ npm run dev      # Development with hot-reload
 npm test         # Run tests
 npm run build    # Build for production
 ```
+
+## Todo / Improvements
+
+- [ ] Run in an isolated dir (less likely to bork files when running locally)

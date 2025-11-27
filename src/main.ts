@@ -13,7 +13,7 @@ import pkg from '../package.json' with { type: 'json' };
 dotenv.config();
 
 const HOST = process.env.HOST || '0.0.0.0';
-const PORT = parseInt(process.env.PORT || '2528', 10);
+const PORT = parseInt(process.env.PORT || '2222', 10);
 
 // Check for required ANTHROPIC_API_KEY
 if (!process.env.ANTHROPIC_API_KEY) {

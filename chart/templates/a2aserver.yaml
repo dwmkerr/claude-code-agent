@@ -1,0 +1,20 @@
+{{- if .Values.a2aserver.enabled }}
+apiVersion: ark.mckinsey.com/v1prealpha1
+kind: A2AServer
+metadata:
+  name: {{ include "claude-code-agent.fullname" . }}
+  labels:
+    {{- include "claude-code-agent.labels" . | nindent 4 }}
+  {{- with .Values.a2aserver.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  address:
+    valueFrom:
+      serviceRef:
+        name: {{ include "claude-code-agent.fullname" . }}
+        port: http
+  timeout: {{ .Values.a2aserver.timeout | quote }}
+  description: {{ .Values.a2aserver.description | quote }}
+{{- end }}

@@ -1,23 +1,27 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Release.Name }}
+  name: {{ include "claude-code-agent.fullname" . }}
+  labels:
+    {{- include "claude-code-agent.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: {{ .Release.Name }}
+      {{- include "claude-code-agent.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        app: {{ .Release.Name }}
+        {{- include "claude-code-agent.selectorLabels" . | nindent 8 }}
     spec:
       containers:
-        - name: claude-code-agent
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
-            - containerPort: 2528
+            - name: http
+              containerPort: 2222
+              protocol: TCP
           env:
             - name: ANTHROPIC_API_KEY
               {{- if .Values.apiKeySecret }}
@@ -37,21 +41,9 @@ spec:
           livenessProbe:
             httpGet:
               path: /health
-              port: 2528
+              port: http
             initialDelaySeconds: 10
           readinessProbe:
             httpGet:
               path: /health
-              port: 2528
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: {{ .Release.Name }}
-spec:
-  type: {{ .Values.service.type }}
-  ports:
-    - port: {{ .Values.service.port }}
-      targetPort: 2528
-  selector:
-    app: {{ .Release.Name }}
+              port: http

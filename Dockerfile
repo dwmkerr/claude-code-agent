@@ -31,6 +31,6 @@ RUN chown -R ark:nogroup /app /home/ark/.claude
 USER ark
 ENV HOME=/home/ark
 
-EXPOSE 2528
+EXPOSE 2222
 
 CMD ["node", "dist/main.js"]

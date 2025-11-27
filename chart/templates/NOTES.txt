@@ -1,0 +1,13 @@
+Claude Code Agent has been deployed!
+
+To check the status:
+  kubectl get pods -l app.kubernetes.io/name={{ include "claude-code-agent.name" . }}
+
+{{- if .Values.a2aserver.enabled }}
+To verify the A2AServer resource:
+  kubectl get a2aserver {{ include "claude-code-agent.fullname" . }}
+{{- end }}
+
+To test the agent directly:
+  kubectl port-forward svc/{{ include "claude-code-agent.fullname" . }} 2528:{{ .Values.service.port }}
+  curl http://localhost:2528/health

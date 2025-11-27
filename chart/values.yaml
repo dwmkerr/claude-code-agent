@@ -1,0 +1,40 @@
+replicaCount: 1
+
+image:
+  repository: ghcr.io/dwmkerr/claude-code-agent
+  tag: latest
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: ""
+
+# API key configuration (use apiKeySecret for production)
+apiKey: ""
+apiKeySecret: ""
+
+# Environment variables
+env:
+  CLAUDE_TIMEOUT_SECONDS: "300"
+  CLAUDE_ALLOWED_TOOLS: "Bash,Read,Edit,Write,Grep,Glob"
+  CLAUDE_PERMISSION_MODE: "acceptEdits"
+  FORCE_COLOR: "1"
+
+service:
+  type: ClusterIP
+  port: 80
+
+# ARK A2AServer resource
+a2aserver:
+  enabled: true
+  timeout: "10m"
+  description: "Claude Code AI assistant for software engineering tasks"
+  annotations:
+    ark.mckinsey.com/dashboard-icon: /icons/claude.png
+
+resources:
+  limits:
+    memory: 2Gi
+    cpu: 2000m
+  requests:
+    cpu: 500m
+    memory: 512Mi

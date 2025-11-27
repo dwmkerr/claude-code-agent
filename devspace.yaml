@@ -37,7 +37,7 @@ deployments:
   claude-agent:
     helm:
       chart:
-        name: ./charts/claude-code-agent
+        name: ./chart
       values:
         image:
           repository: claude-agent
