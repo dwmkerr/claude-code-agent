@@ -35,9 +35,14 @@ pipelines:
 
 deployments:
   claude-agent:
-    kubectl:
-      manifests:
-        - manifests.yaml
+    helm:
+      chart:
+        name: ./charts/claude-code-agent
+      values:
+        image:
+          repository: claude-agent
+          tag: latest
+        apiKeySecret: claude-code-secrets
 
 dev:
   claude-agent:
