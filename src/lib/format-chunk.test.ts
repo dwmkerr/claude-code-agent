@@ -35,9 +35,14 @@ describe('formatChunkPreview', () => {
     expect(formatChunkPreview(msg)).toBe('assistant: tool_use Bash');
   });
 
-  test('user with tool_result', () => {
-    const msg = { type: 'user', content: [{ type: 'tool_result', tool_use_id: 'toolu_017JrxGvXGLfC7fcMkUfZXSL' }] };
-    expect(formatChunkPreview(msg)).toBe('user: tool_result toolu_017Jrx...');
+  test('user with tool_result with content', () => {
+    const msg = { type: 'user', content: [{ type: 'tool_result', tool_use_id: 'toolu_017Jrx', content: 'File created successfully' }] };
+    expect(formatChunkPreview(msg)).toBe('user: tool_result "File created successfully..."');
+  });
+
+  test('user with tool_result without content', () => {
+    const msg = { type: 'user', content: [{ type: 'tool_result', tool_use_id: 'toolu_017Jrx' }] };
+    expect(formatChunkPreview(msg)).toBe('user: tool_result (ok)');
   });
 
   test('truncates long text', () => {

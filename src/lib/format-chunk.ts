@@ -38,8 +38,17 @@ export function formatChunkPreview(msg: any): string {
     return `${typeColor(type)}: ${chalk.yellow('tool_use')} ${chalk.dim(first.name || 'unknown')}`;
   }
   if (first.type === 'tool_result') {
-    const toolId = (first.tool_use_id || '').substring(0, 12);
-    return `${typeColor(type)}: ${chalk.yellow('tool_result')} ${chalk.dim(`${toolId}...`)}`;
+    // Extract preview from content (string or array)
+    let preview = '';
+    if (typeof first.content === 'string') {
+      preview = first.content.substring(0, 40).replace(/\s+/g, ' ');
+    } else if (Array.isArray(first.content) && first.content[0]?.text) {
+      preview = first.content[0].text.substring(0, 40).replace(/\s+/g, ' ');
+    }
+    if (preview) {
+      return `${typeColor(type)}: ${chalk.yellow('tool_result')} ${chalk.dim(`"${preview}..."`)}`;
+    }
+    return `${typeColor(type)}: ${chalk.yellow('tool_result')} ${chalk.dim('(ok)')}`;
   }
 
   return `${typeColor(type)}: ${chalk.dim(first.type)}`;

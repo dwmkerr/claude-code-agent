@@ -84,4 +84,7 @@ npm run build    # Build for production
 
 ## Todo / Improvements
 
-- [ ] Run in an isolated dir (less likely to bork files when running locally)
+**Sessions**
+
+- [ ] properly track session id
+- [ ] run one process/pwd per session for slightly better isolation - clear docs that separate containers per session is safer
