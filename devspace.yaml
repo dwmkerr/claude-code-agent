@@ -1,0 +1,71 @@
+version: v2beta1
+
+vars:
+  ANTHROPIC_API_KEY:
+    source: input
+    question: "Enter your Anthropic API key:"
+
+images:
+  claude-agent:
+    image: claude-agent
+    dockerfile: Dockerfile
+    context: .
+
+hooks:
+  - name: create-anthropic-secret
+    events: ["before:deploy", "before:dev"]
+    command: |-
+      if [ -z "${ANTHROPIC_API_KEY}" ]; then
+        echo "Error: ANTHROPIC_API_KEY is required"
+        exit 1
+      fi
+      echo "Creating claude-code-secrets..."
+      kubectl create secret generic claude-code-secrets \
+        --from-literal=api-key="${ANTHROPIC_API_KEY}" \
+        --dry-run=client -o yaml | kubectl apply -f -
+
+pipelines:
+  deploy: |-
+    build_images --all
+    create_deployments --all
+
+  dev: |-
+    create_deployments --all
+    start_dev --all
+
+deployments:
+  claude-agent:
+    kubectl:
+      manifests:
+        - manifests.yaml
+
+dev:
+  claude-agent:
+    imageSelector: claude-agent
+
+    devImage: node:20-slim
+    command:
+      - sh
+      - -c
+      - |
+        cd /app
+        apt-get update && apt-get install -y git
+
+        npm install -g @anthropic-ai/claude-code
+        export PATH="$(npm prefix -g)/bin:$PATH"
+
+        npm install
+        mkdir -p ~/.claude/skills
+        ln -sf /app/skills/* ~/.claude/skills/ 2>/dev/null || true
+
+        export FORCE_COLOR=1
+        export CLAUDE_TIMEOUT_SECONDS=900
+
+        npm run dev
+    logs:
+      lastLines: 50
+    sync:
+      - path: .:/app
+        startContainer: true
+        disableDownload: true
+        uploadExcludeFile: .dockerignore

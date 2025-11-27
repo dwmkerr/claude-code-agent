@@ -1,0 +1,6 @@
+apiVersion: v2
+name: claude-code-agent
+description: Claude Code as a containerized A2A agent
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
