@@ -14,6 +14,10 @@
   </p>
 </p>
 
+<p align="center">
+  <img src="./docs/images/terminal-screenshot.png" width="600" alt="Claude Code Agent terminal output">
+</p>
+
 ## Quickstart
 
 ```bash
