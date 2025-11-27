@@ -26,12 +26,28 @@ npm install && npm run dev
 # Server: http://localhost:2222
 ```
 
-Test with curl:
+Run with curl:
 
 ```bash
 curl -N -X POST http://localhost:2222/ \
   -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","method":"message/stream","params":{"message":{"messageId":"1","contextId":"ctx-1","role":"user","parts":[{"kind":"text","text":"Hello"}]}},"id":1}'
+```
+
+Run with A2A Inspector:
+
+```bash
+git clone https://github.com/google/A2A.git
+cd A2A && ./scripts/run.sh
+# Connect to http://localhost:2222
+```
+
+Run with Ark:
+
+```bash
+ark install
+helm install claude-code-agent ./chart --set apiKey=$ANTHROPIC_API_KEY
+ark dashboard
 ```
 
 ## Deploy
@@ -53,14 +69,6 @@ helm install claude-code-agent dwmkerr/claude-code-agent --set apiKey=$ANTHROPIC
 
 ```bash
 devspace dev
-```
-
-**A2A Inspector**
-
-```bash
-git clone https://github.com/google/A2A.git
-cd A2A && ./scripts/run.sh
-# Connect to http://localhost:2222
 ```
 
 ## Configuration
