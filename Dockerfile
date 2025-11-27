@@ -3,7 +3,7 @@ FROM node:20-slim AS builder
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm ci
+RUN npm ci --ignore-scripts
 
 COPY tsconfig.json ./
 COPY src/ ./src/
@@ -24,7 +24,7 @@ RUN adduser --system --uid 1001 --home /home/ark ark && \
     chown -R ark:nogroup /home/ark
 
 COPY package*.json ./
-RUN npm ci --omit=dev
+RUN npm ci --omit=dev --ignore-scripts
 
 COPY --from=builder /app/dist ./dist/
 COPY skills/ /home/ark/.claude/skills/
