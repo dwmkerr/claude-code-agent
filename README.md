@@ -37,17 +37,20 @@ curl -N -X POST http://localhost:2222/ \
 Run with A2A Inspector:
 
 ```bash
-git clone https://github.com/google/A2A.git
-cd A2A && ./scripts/run.sh
+git clone https://github.com/a2aproject/a2a-inspector
+cd a2a-inspector && ./scripts/run.sh
 # Connect to http://localhost:2222
 ```
 
-Run with Ark:
+Run with [Ark](https://github.com/mckinsey/agents-at-scale-ark):
 
 ```bash
-ark install
-helm install claude-code-agent ./chart --set apiKey=$ANTHROPIC_API_KEY
-ark dashboard
+npm install -g @agents-at-scale/ark
+ark install                        # install ark if needed
+devspace dev                       # run with live reload
+ark dashboard                      # check the agent in the ark dashboard
+ark query agent/claude-code 'hi'   # send a message
+ark chat agent/claude-code 'hi'    # interactive chat
 ```
 
 ## Deploy
