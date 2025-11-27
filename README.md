@@ -36,23 +36,31 @@ curl -N -X POST http://localhost:2222/ \
 
 ## Deploy
 
-### Docker
+**Docker**
 
 ```bash
 docker run -e ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY -p 2222:2222 ghcr.io/dwmkerr/claude-code-agent
 ```
 
-### Helm
+**Helm**
 
 ```bash
 helm repo add dwmkerr https://dwmkerr.github.io/claude-code-agent
 helm install claude-code-agent dwmkerr/claude-code-agent --set apiKey=$ANTHROPIC_API_KEY
 ```
 
-### DevSpace
+**DevSpace**
 
 ```bash
 devspace dev
+```
+
+**A2A Inspector**
+
+```bash
+git clone https://github.com/google/A2A.git
+cd A2A && ./scripts/run.sh
+# Connect to http://localhost:2222
 ```
 
 ## Configuration
