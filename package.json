@@ -32,6 +32,9 @@
   ],
   "author": "Dave Kerr",
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
     "@a2a-js/sdk": "^0.3.4",
     "@anthropic-ai/sdk": "^0.32.1",
