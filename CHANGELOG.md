@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1](https://github.com/dwmkerr/claude-code-agent/compare/v0.1.0...v0.1.1) (2025-11-28)
+
+
+### Miscellaneous Chores
+
+* release 0.1.1 ([5da8021](https://github.com/dwmkerr/claude-code-agent/commit/5da80211ee349aa9452a9200f7999f8cf5715338))
+
 ## 0.1.0 (2025-11-27)
 
 
