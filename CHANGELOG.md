@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.2](https://github.com/dwmkerr/claude-code-agent/compare/v0.1.1...v0.1.2) (2025-11-30)
+
+
+### Features
+
+* add configurable workspace directory ([687f05d](https://github.com/dwmkerr/claude-code-agent/commit/687f05d62cd68c3019034b95c390cfe1f2dd66ba))
+* add configurable workspace directory ([fca80a8](https://github.com/dwmkerr/claude-code-agent/commit/fca80a866b2032b4283a2467b2cb0501d2ae09b6))
+
 ## [0.1.1](https://github.com/dwmkerr/claude-code-agent/compare/v0.1.0...v0.1.1) (2025-11-28)
 
 
