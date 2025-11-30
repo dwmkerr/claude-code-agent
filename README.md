@@ -6,6 +6,7 @@
     <a href="#deploy">Deploy</a> |
     <a href="#configuration">Configuration</a> |
     <a href="#skills">Skills</a>
+    <a href="#important">Important - Managing Risk</a>
   </p>
   <p align="center">
     <a href="https://github.com/dwmkerr/claude-code-agent/actions/workflows/cicd.yaml"><img src="https://github.com/dwmkerr/claude-code-agent/actions/workflows/cicd.yaml/badge.svg" alt="cicd"></a>
@@ -20,11 +21,29 @@
 
 ## Quickstart
 
-Run the Claude Code Agent A2A server locally:
+Run the Claude Code Agent A2A server locally (check [important note on managing risk](#important):
 
 ```bash
+# Set your API key.
 export ANTHROPIC_API_KEY="sk-***"
+
+# Alternatively, use a .env file.
+# cp .env.sample .env  # now set your key.
+
+# Run in local development / live reload mode.
 npm install && npm run dev
+
+# SAFER: Run in local development / live reload mode - but don't inherit the
+# user's environment (e.g. sensitive env vars not accessible to claude).
+make dev-safe
+# Server: http://localhost:2222
+```
+
+Or run in a container (safer and more isolated):
+
+```bash
+# Run in a container. Also loads the .env file if present.
+make docker-run
 # Server: http://localhost:2222
 ```
 
@@ -78,15 +97,14 @@ kubectl get agent
 # chat in the terminal.
 ark dashboard
 ark query agent/claude-code 'hi'
-ark chat agent/claude-code 'hi'
-```
 
 ## Deploy
 
 **Docker**
 
 ```bash
-docker run -e ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY -p 2222:2222 ghcr.io/dwmkerr/claude-code-agent
+docker run -e ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY -p 2222:2222 \
+  ghcr.io/dwmkerr/claude-code-agent
 ```
 
 **Helm**
@@ -104,13 +122,40 @@ devspace dev
 
 ## Configuration
 
+The following env vars are supported:
+
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `ANTHROPIC_API_KEY` | API key (required) | - |
 | `CLAUDE_ALLOWED_TOOLS` | Allowed tools | `Bash,Read,Edit,Write,Grep,Glob` |
 | `CLAUDE_PERMISSION_MODE` | Permission mode | `acceptEdits` |
 | `CLAUDE_TIMEOUT_SECONDS` | Execution timeout | `300` |
+| `CLAUDE_CODE_WORKSPACE_DIR` | Working directory | `./workspace` (local) or `/workspace` (docker/helm) |
 | `FORCE_COLOR` | Enable colors in logs | `0` |
+
+### Workspace
+
+Claude operates in `./workspace` locally or `/workspace` in containers. Override with `CLAUDE_CODE_WORKSPACE_DIR`.
+
+```bash
+# Mount a specific folder rather than the local ./workspace folder.
+CLAUDE_CODE_WORKSPACE_DIR=/tmp/project1 npm run dev
+
+# Docker - mount a local workspace. This folder is automatically mounted when
+# make docker-run is used.
+docker run -v ./workspace:/workspace ...
+
+# Helm - enable persistence (creates PVC)
+helm install ... --set workspace.persistence.enabled=true
+```
+
+### Tools
+
+Claude code runs in a container, with a number of tools such as `curl`, `wget`, etc installed. Check these tools or extend by editing [`Dockerfile`](./Dockerfile).
+
+If tools require configuration, config files or env vars can be passed to the container. For example, to ensure that the `gh` CLI can be used, pass a `GH_TOKEN` by either setting in `.env` or explicitly pass the environment variable. See the [important note on risk](#important).
+
+**TODO** mcp such as playwright
 
 ## Skills
 
@@ -139,3 +184,31 @@ npm run build    # Build for production
 
 - [ ] properly track session id
 - [ ] run one process/pwd per session for slightly better isolation - clear docs that separate containers per session is safer
+
+**Skills**
+
+- [ ] ensure `make docker-run` mounts skills
+
+**Config**
+
+- [ ] easier way to install additional tools such as 'wget'? Offer apt?
+
+**Output**
+
+- [ ] fit log output to terminal width (accounting for ANSI color codes)
+
+**CLI**
+
+- [ ] pass-through Claude args via `--` or `CLAUDE_ARGS` env var
+
+## Test Prompts
+
+> Clone the mckinsey/agents-at-scale-ar repo, build a file called 'issues.md' that has a table of issues/urls/ids/titles and a one line summary for each one. Then suggest a good first issue to work on.
+
+> Clone the mckinsey/agents-at-scale-ar repo, work out where the online documentation is deployed to and take a screenshot of the front page in the browser and safe to a file called screenshot.png.
+
+## Important
+
+Be aware that if you run the agent as a local process with `npm`, then it will inherit your environment. This presents a *significant* security risk - for example if you are logged into the GitHub CLI (`gh`) then the agent will be able to execute GitHub commands with your identity, via the `Bash` tool.
+
+It is highly recommended that you run the agent in a docker container with `make docker-run` or by checking the [Deploy](#deploy) guide. You can also use `make dev-safe`. Use `make help` for all recipes.

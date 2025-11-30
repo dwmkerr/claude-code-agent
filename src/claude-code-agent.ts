@@ -1,5 +1,6 @@
 import type { AgentCard } from '@a2a-js/sdk';
 import { ClaudeCodeExecutor } from './claude-code-executor.js';
+import { Config } from './config.js';
 import pkg from '../package.json' with { type: 'json' };
 
 const AgentId = 'claude-code-agent';
@@ -47,8 +48,10 @@ export interface A2AAgent {
   executor: ClaudeCodeExecutor;
 }
 
-export const claudeCodeAgent: A2AAgent = {
-  id: AgentId,
-  card: agentCard,
-  executor: new ClaudeCodeExecutor(),
-};
+export function createAgent(config: Config): A2AAgent {
+  return {
+    id: AgentId,
+    card: agentCard,
+    executor: new ClaudeCodeExecutor(config),
+  };
+}
