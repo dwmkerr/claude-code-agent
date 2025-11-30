@@ -4,16 +4,20 @@ import {
   DefaultRequestHandler,
 } from '@a2a-js/sdk/server';
 import { A2AExpressApp } from '@a2a-js/sdk/server/express';
-import { claudeCodeAgent } from './claude-code-agent.js';
+import { createAgent } from './claude-code-agent.js';
+import { Config } from './config.js';
 
-export function setupA2ARoutes(app: Express, host: string, port: number): void {
+export function setupA2ARoutes(app: Express, host: string, port: number, config: Config): void {
   // Use env vars for agent card URL if provided, otherwise use actual host/port
   const cardHost = process.env.AGENT_CARD_HOST || host;
   const cardPort = process.env.AGENT_CARD_PORT || port.toString();
 
+  // Create agent with config
+  const agent = createAgent(config);
+
   // Patch the agent card URL with configured host/port
   const agentCardWithUrl = {
-    ...claudeCodeAgent.card,
+    ...agent.card,
     url: `http://${cardHost}:${cardPort}/`,
   };
 
@@ -22,7 +26,7 @@ export function setupA2ARoutes(app: Express, host: string, port: number): void {
   const requestHandler = new DefaultRequestHandler(
     agentCardWithUrl,
     taskStore,
-    claudeCodeAgent.executor
+    agent.executor
   );
 
   // Create A2A Express app and setup routes on main app

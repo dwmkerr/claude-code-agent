@@ -1,4 +1,4 @@
-import { execa, execaNode } from 'execa';
+import { execaNode } from 'execa';
 import { v4 as uuidv4 } from 'uuid';
 import chalk from 'chalk';
 import { Task } from '@a2a-js/sdk';
@@ -10,9 +10,7 @@ import {
 import { Kind, Role, TaskState } from './protocol.js';
 import { findClaudePath } from './lib/claude-path.js';
 import { formatChunkPreview } from './lib/format-chunk.js';
-import createDebug from 'debug';
-
-const debug = createDebug('claude:cli');
+import { Config } from './config.js';
 
 interface ClaudeMessage {
   type: string;
@@ -29,20 +27,11 @@ interface ClaudeMessage {
 export class ClaudeCodeExecutor implements AgentExecutor {
   private sessions = new Map<string, string>();
   private runningProcesses = new Map<string, AbortController>();
-  private allowedTools: string;
-  private permissionMode: string;
-  private timeoutMs: number;
+  private config: Config;
   private claudePath: string;
 
-  constructor(
-    allowedTools = 'Bash,Read,Edit,Write,Grep,Glob',
-    permissionMode = 'acceptEdits'
-  ) {
-    this.allowedTools = allowedTools;
-    this.permissionMode = permissionMode;
-    // Default 5 minutes, configurable via env var (in seconds)
-    const timeoutSeconds = parseInt(process.env.CLAUDE_TIMEOUT_SECONDS || '300', 10);
-    this.timeoutMs = timeoutSeconds * 1000;
+  constructor(config: Config) {
+    this.config = config;
 
     // Find Claude CLI path
     const claudePath = findClaudePath();
@@ -153,11 +142,10 @@ export class ClaudeCodeExecutor implements AgentExecutor {
       const userTextPreview = messageText.substring(0, 60);
       console.log(`    → Executing: "${userTextPreview}${messageText.length > 60 ? '...' : ''}"`);
 
-      // Use execaNode to execute claude as a Node.js script
-      // Note: execa inherits environment by default, but we explicitly pass it to be sure
       const subprocess = execaNode(this.claudePath, args, {
+        cwd: this.config.workspace,
         cancelSignal: abortController.signal,
-        timeout: this.timeoutMs,
+        timeout: this.config.timeoutSeconds * 1000,
         stdin: 'ignore',
       });
 
@@ -313,9 +301,9 @@ export class ClaudeCodeExecutor implements AgentExecutor {
       'stream-json',
       '--verbose',
       '--allowedTools',
-      this.allowedTools,
+      this.config.allowedTools,
       '--permission-mode',
-      this.permissionMode,
+      this.config.permissionMode,
     ];
 
     if (sessionId) {

@@ -15,6 +15,8 @@ jest.mock('chalk', () => ({
 import { formatChunkPreview } from './format-chunk';
 
 describe('formatChunkPreview', () => {
+  // Default terminal width is 80 when process.stdout.columns is undefined
+
   test('system:init with session_id', () => {
     const msg = { type: 'system', subtype: 'init', session_id: 'a6d626b0-6e9b-4dab-819d-ac36e577a1b7' };
     expect(formatChunkPreview(msg)).toBe('system:init session=a6d626b0...');
@@ -37,7 +39,7 @@ describe('formatChunkPreview', () => {
 
   test('user with tool_result with content', () => {
     const msg = { type: 'user', content: [{ type: 'tool_result', tool_use_id: 'toolu_017Jrx', content: 'File created successfully' }] };
-    expect(formatChunkPreview(msg)).toBe('user: tool_result "File created successfully..."');
+    expect(formatChunkPreview(msg)).toBe('user: tool_result "File created successfully"');
   });
 
   test('user with tool_result without content', () => {
@@ -48,6 +50,8 @@ describe('formatChunkPreview', () => {
   test('truncates long text', () => {
     const longText = 'A'.repeat(100);
     const msg = { type: 'assistant', content: [{ type: 'text', text: longText }] };
-    expect(formatChunkPreview(msg)).toBe(`assistant: "${'A'.repeat(50)}..."`);
+    const result = formatChunkPreview(msg);
+    // Text truncated to 60 chars max
+    expect(result).toMatch(/^assistant: "A{57}\.\.\."/);
   });
 });
