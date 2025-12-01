@@ -1,5 +1,5 @@
 ---
-name: ark-analysis
+name: Ark Analysis
 description: Analyze the Ark codebase by cloning the repository to a temporary location. Use this skill when the user asks questions about how Ark works, wants to understand Ark's implementation, or needs to examine Ark source code.
 ---
 

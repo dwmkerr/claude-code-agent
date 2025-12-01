@@ -14,7 +14,7 @@ apiKeySecret: ""
 
 # Environment variables
 env:
-  CLAUDE_TIMEOUT_SECONDS: "300"
+  CLAUDE_TIMEOUT_SECONDS: "3600"
   CLAUDE_ALLOWED_TOOLS: "Bash,Read,Edit,Write,Grep,Glob"
   CLAUDE_PERMISSION_MODE: "acceptEdits"
   FORCE_COLOR: "1"

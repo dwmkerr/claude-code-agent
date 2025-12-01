@@ -19,6 +19,10 @@
   <img src="./docs/images/terminal-screenshot.png" width="600" alt="Claude Code Agent terminal output">
 </p>
 
+This project lets you deploy and run the Claude Code agent as a self-contained A2A server. This allows you to deploy Claude Code to different environments and interact with it using a standardised protocol. Isolated workspaces, skills, and various other capabilities can easily be extended.
+
+I am using this agent extensively in my work on [Ark](https://github.com/agents-at-scale-ark) - there are examples on how to build skills, use K8S, playwright, and more, in [`./examples/ark`](./examples/ark).
+
 ## Quickstart
 
 Run the Claude Code Agent A2A server locally (check [important note on managing risk](#important):
@@ -37,6 +41,8 @@ npm install && npm run dev
 # user's environment (e.g. sensitive env vars not accessible to claude).
 make dev-safe
 # Server: http://localhost:2222
+# or:
+# env -i npm run dev
 ```
 
 Or run in a container (safer and more isolated):
@@ -118,6 +124,7 @@ helm install claude-code-agent oci://ghcr.io/dwmkerr/charts/claude-code-agent \
 
 ```bash
 devspace dev
+devspace dev -p ark  # Ark example with DinD for Kind clusters
 ```
 
 ## Configuration
@@ -129,8 +136,9 @@ The following env vars are supported:
 | `ANTHROPIC_API_KEY` | API key (required) | - |
 | `CLAUDE_ALLOWED_TOOLS` | Allowed tools | `Bash,Read,Edit,Write,Grep,Glob` |
 | `CLAUDE_PERMISSION_MODE` | Permission mode | `acceptEdits` |
-| `CLAUDE_TIMEOUT_SECONDS` | Execution timeout | `300` |
+| `CLAUDE_TIMEOUT_SECONDS` | Execution timeout | `3600` |
 | `CLAUDE_CODE_WORKSPACE_DIR` | Working directory | `./workspace` (local) or `/workspace` (docker/helm) |
+| `ADDITIONAL_SKILLS_DIR` | Copy skills from this directory to workspace | - |
 | `FORCE_COLOR` | Enable colors in logs | `0` |
 
 ### Workspace
@@ -159,7 +167,19 @@ If tools require configuration, config files or env vars can be passed to the co
 
 ## Skills
 
-Custom Claude Code skills in `skills/`. Loaded automatically.
+Claude Code loads skills from `workspace/.claude/skills/`. Use `ADDITIONAL_SKILLS_DIR` or `--additional-skills-dir` to copy extra skills into the workspace on startup.
+
+```bash
+# Custom skills directory
+ADDITIONAL_SKILLS_DIR=/path/to/skills npm start
+npm start -- --additional-skills-dir=/path/to/skills
+```
+
+## Examples
+
+See [`examples/`](./examples/) for usage examples:
+
+- **[Ark Testing](./examples/ark/)** - Test Ark PRs with Kind clusters, Playwright screenshots
 
 ## API
 
@@ -178,34 +198,23 @@ npm test         # Run tests
 npm run build    # Build for production
 ```
 
-## Todo / Improvements
+### Testing with Minikube
 
-**Sessions**
-
-- [ ] properly track session id
-- [ ] run one process/pwd per session for slightly better isolation - clear docs that separate containers per session is safer
-
-**Skills**
-
-- [ ] ensure `make docker-run` mounts skills
-
-**Config**
-
-- [ ] easier way to install additional tools such as 'wget'? Offer apt?
-
-**Output**
-
-- [ ] fit log output to terminal width (accounting for ANSI color codes)
-
-**CLI**
-
-- [ ] pass-through Claude args via `--` or `CLAUDE_ARGS` env var
+```bash
+docker build -t claude-code-agent:local .
+minikube image load claude-code-agent:local
+helm install claude-code-agent ./chart \
+  --set image.repository=claude-code-agent \
+  --set image.tag=local \
+  --set image.pullPolicy=Never \
+  --set apiKey=$ANTHROPIC_API_KEY
+```
 
 ## Test Prompts
 
 > Clone the mckinsey/agents-at-scale-ar repo, build a file called 'issues.md' that has a table of issues/urls/ids/titles and a one line summary for each one. Then suggest a good first issue to work on.
 
-> Clone the mckinsey/agents-at-scale-ar repo, work out where the online documentation is deployed to and take a screenshot of the front page in the browser and safe to a file called screenshot.png.
+> Check out https://github.com/mckinsey/agents-at-scale-ark/pull/531 and test it you need to use ark setup to setup your environment and ark-testing to c heck the dashboard. save screenshots to ./screenshots and let me know when done
 
 ## Important
 

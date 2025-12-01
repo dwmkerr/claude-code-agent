@@ -31,3 +31,7 @@ docker-build: # Build the Docker image.
 .PHONY: docker-run
 docker-run: docker-build # Build and run the Docker container.
 	docker run --rm -it --init -v $(PWD)/.env:/app/.env:ro -v $(PWD)/workspace:/workspace -p 2222:2222 claude-code-agent
+
+.PHONY: docker-run-ark
+docker-run-ark: docker-build # Run with Ark skills and Docker socket for Kind. See examples/ark/
+	docker run --rm -it --init -v $(PWD)/.env:/app/.env:ro -v $(PWD)/workspace:/workspace -v $(PWD)/examples/ark/skills:/skills:ro -v /var/run/docker.sock:/var/run/docker.sock -e ADDITIONAL_SKILLS_DIR=/skills -p 2222:2222 claude-code-agent

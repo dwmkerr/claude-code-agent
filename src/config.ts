@@ -26,6 +26,6 @@ export function loadConfig(): Config {
     workspace: getWorkspace(),
     allowedTools: process.env.CLAUDE_ALLOWED_TOOLS || 'Bash,Read,Edit,Write,Grep,Glob',
     permissionMode: process.env.CLAUDE_PERMISSION_MODE || 'acceptEdits',
-    timeoutSeconds: parseInt(process.env.CLAUDE_TIMEOUT_SECONDS || '300', 10),
+    timeoutSeconds: parseInt(process.env.CLAUDE_TIMEOUT_SECONDS || '3600', 10),
   };
 }

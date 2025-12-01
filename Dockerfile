@@ -14,13 +14,22 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Install GitHub CLI (requires adding the repo first)
+# Install GitHub CLI.
 RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
       | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
     && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" \
       > /etc/apt/sources.list.d/github-cli.list \
     && apt-get update && apt-get install -y gh \
     && rm -rf /var/lib/apt/lists/*
+
+# Install kubectl, devspace, kind - for Ark development.
+RUN curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/$(dpkg --print-architecture)/kubectl" \
+    && install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl \
+    && rm kubectl
+RUN curl -fsSL https://github.com/devspace-sh/devspace/releases/latest/download/devspace-linux-$(dpkg --print-architecture) -o /usr/local/bin/devspace \
+    && chmod +x /usr/local/bin/devspace
+RUN curl -Lo /usr/local/bin/kind https://kind.sigs.k8s.io/dl/v0.25.0/kind-linux-$(dpkg --print-architecture) \
+    && chmod +x /usr/local/bin/kind
 
 WORKDIR /app
 
@@ -34,9 +43,8 @@ COPY package*.json ./
 RUN npm ci --omit=dev --ignore-scripts
 
 COPY --from=builder /app/dist ./dist/
-COPY skills/ /home/ark/.claude/skills/
 
-RUN chown -R ark:nogroup /app /home/ark/.claude
+RUN mkdir -p /workspace && chown -R ark:nogroup /app /workspace
 
 USER ark
 ENV HOME=/home/ark

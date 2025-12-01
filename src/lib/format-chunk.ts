@@ -41,7 +41,9 @@ export function formatChunkPreview(msg: any): string {
     return `${typeColor(type)}: ${chalk.dim(`"${text}"`)}`;
   }
   if (first.type === 'tool_use') {
-    return `${typeColor(type)}: ${chalk.yellow('tool_use')} ${chalk.dim(first.name || 'unknown')}`;
+    const toolName = first.name || 'unknown';
+    const params = first.input ? truncate(JSON.stringify(first.input), 60) : '';
+    return `${typeColor(type)}: ${chalk.blue(toolName)} ${chalk.dim(params)}`;
   }
   if (first.type === 'tool_result') {
     let preview = '';

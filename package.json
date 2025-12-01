@@ -12,6 +12,7 @@
     "build": "tsc",
     "start": "node dist/main.js",
     "dev": "tsx watch src/main.ts",
+    "dev:ark": "tsx watch src/main.ts --additional-skills-dir=./examples/ark/skills",
     "test": "jest",
     "lint": "eslint src/**/*.ts"
   },

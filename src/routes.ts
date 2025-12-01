@@ -6,14 +6,15 @@ import {
 import { A2AExpressApp } from '@a2a-js/sdk/server/express';
 import { createAgent } from './claude-code-agent.js';
 import { Config } from './config.js';
+import { Skill } from './skill-loader.js';
 
-export function setupA2ARoutes(app: Express, host: string, port: number, config: Config): void {
+export function setupA2ARoutes(app: Express, host: string, port: number, config: Config, skills: Skill[] = []): void {
   // Use env vars for agent card URL if provided, otherwise use actual host/port
   const cardHost = process.env.AGENT_CARD_HOST || host;
   const cardPort = process.env.AGENT_CARD_PORT || port.toString();
 
-  // Create agent with config
-  const agent = createAgent(config);
+  // Create agent with config and skills
+  const agent = createAgent(config, skills);
 
   // Patch the agent card URL with configured host/port
   const agentCardWithUrl = {
