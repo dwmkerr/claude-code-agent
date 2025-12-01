@@ -9,9 +9,11 @@ RUN npm ci
 FROM node:20-slim
 
 # Claude Code uses Bash to run commands like curl, git, gh, etc.
+# docker.io provides CLI for Kind when Docker socket is mounted.
 RUN apt-get update && apt-get install -y \
     git \
     curl \
+    docker.io \
     && rm -rf /var/lib/apt/lists/*
 
 # Install GitHub CLI.
