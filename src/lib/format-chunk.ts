@@ -1,5 +1,8 @@
 import chalk from 'chalk';
 
+// External indent added by caller ("      < " = 8 chars)
+const EXTERNAL_INDENT = 8;
+
 // Get terminal width
 function getTermWidth(): number {
   return process.stdout.columns || 80;
@@ -7,7 +10,7 @@ function getTermWidth(): number {
 
 // Truncate text to fit remaining width after prefix
 function truncateToFit(text: string, prefixLen: number): string {
-  const available = Math.max(getTermWidth() - prefixLen - 3, 20); // -3 for ellipsis, min 20
+  const available = Math.max(getTermWidth() - EXTERNAL_INDENT - prefixLen - 3, 20);
   if (text.length <= available) return text;
   return text.substring(0, available) + '...';
 }
