@@ -42,22 +42,20 @@ git checkout pr-<PR_NUMBER>
 
 ## Step 2: Set up Kubernetes cluster
 
-If you don't have a Kubernetes cluster running, create one with Kind.
-
-**Important:** This agent runs in Docker, so always use `--internal` when exporting kubeconfig. This ensures kubectl/helm can reach the Kind cluster via Docker network addresses instead of localhost.
+**CRITICAL: You MUST run `kind export kubeconfig --internal` after creating the cluster. Without this, kubectl will fail with "connection refused" errors.**
 
 ```bash
 # Create Kind cluster
 kind create cluster --name ark-cluster
 
-# Export kubeconfig with internal addresses (required for Docker-in-Docker)
+# REQUIRED: Export kubeconfig with --internal flag (Docker networking)
 kind export kubeconfig --name ark-cluster --internal
 
-# Verify connection
+# Verify connection works
 kubectl cluster-info
 ```
 
-If `kubectl cluster-info` fails with connection refused, re-run the export with `--internal`.
+**Why `--internal` is required:** This agent runs inside Docker. Without `--internal`, Kind sets the API server to `127.0.0.1` which doesn't work across Docker containers. The `--internal` flag uses Docker DNS names instead.
 
 ## Step 3: Build the ark-cli from source
 
