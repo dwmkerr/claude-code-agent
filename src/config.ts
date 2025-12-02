@@ -6,6 +6,7 @@ export interface Config {
   allowedTools: string;
   permissionMode: string;
   timeoutSeconds: number;
+  logPath: string | null;  // File path for full chunk logs (opt-in via CLAUDE_LOG_PATH)
 }
 
 // Detect if running in a container (Docker/Helm)
@@ -27,5 +28,6 @@ export function loadConfig(): Config {
     allowedTools: process.env.CLAUDE_ALLOWED_TOOLS || 'Bash,Read,Edit,Write,Grep,Glob,Skill',
     permissionMode: process.env.CLAUDE_PERMISSION_MODE || 'acceptEdits',
     timeoutSeconds: parseInt(process.env.CLAUDE_TIMEOUT_SECONDS || '3600', 10),
+    logPath: process.env.CLAUDE_LOG_PATH || null,
   };
 }

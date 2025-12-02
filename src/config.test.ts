@@ -33,7 +33,7 @@ describe('loadConfig', () => {
   test('defaults allowedTools', () => {
     delete process.env.CLAUDE_ALLOWED_TOOLS;
     const config = loadConfig();
-    expect(config.allowedTools).toBe('Bash,Read,Edit,Write,Grep,Glob');
+    expect(config.allowedTools).toBe('Bash,Read,Edit,Write,Grep,Glob,Skill');
   });
 
   test('uses CLAUDE_PERMISSION_MODE when set', () => {
@@ -54,9 +54,21 @@ describe('loadConfig', () => {
     expect(config.timeoutSeconds).toBe(600);
   });
 
-  test('defaults timeoutSeconds to 300', () => {
+  test('defaults timeoutSeconds to 3600', () => {
     delete process.env.CLAUDE_TIMEOUT_SECONDS;
     const config = loadConfig();
-    expect(config.timeoutSeconds).toBe(300);
+    expect(config.timeoutSeconds).toBe(3600);
+  });
+
+  test('uses CLAUDE_LOG_PATH when set', () => {
+    process.env.CLAUDE_LOG_PATH = '/var/log/claude.log';
+    const config = loadConfig();
+    expect(config.logPath).toBe('/var/log/claude.log');
+  });
+
+  test('defaults logPath to null', () => {
+    delete process.env.CLAUDE_LOG_PATH;
+    const config = loadConfig();
+    expect(config.logPath).toBeNull();
   });
 });

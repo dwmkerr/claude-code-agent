@@ -1,4 +1,5 @@
 import { execaNode } from 'execa';
+import { appendFileSync } from 'fs';
 import { v4 as uuidv4 } from 'uuid';
 import chalk from 'chalk';
 import { Task } from '@a2a-js/sdk';
@@ -168,6 +169,11 @@ export class ClaudeCodeExecutor implements AgentExecutor {
 
           try {
             const msg: ClaudeMessage = JSON.parse(line);
+
+            // Log full chunk to file if enabled
+            if (this.config.logPath) {
+              appendFileSync(this.config.logPath, line + '\n');
+            }
 
             // Log each JSON chunk as it arrives
             const tw = getTermWidth();
