@@ -9,7 +9,6 @@ export interface Skill {
   examples: string[];
   inputModes: string[];
   outputModes: string[];
-  sourcePath?: string;
 }
 
 interface SkillFrontmatter {
@@ -51,21 +50,13 @@ function toTitleCase(str: string): string {
  * Load skills from a directory containing skill subdirectories.
  * Each subdirectory should contain a SKILL.md file with YAML frontmatter.
  *
- * @param skillsDir - Path to skills directory (typically workspace/.claude/skills)
- * @param copiedSkillPaths - Source paths of skills copied from additional dirs
+ * @param skillsDir - Path to skills directory
+ * @param type - Optional type tag (e.g., 'user' or 'project')
  * @returns Array of loaded skills
  */
-export function loadSkills(skillsDir: string, copiedSkillPaths: string[] = []): Skill[] {
-
+export function loadSkills(skillsDir: string, type?: string): Skill[] {
   if (!existsSync(skillsDir)) {
     return [];
-  }
-
-  // Map skill folder names to their source paths
-  const sourcePathMap = new Map<string, string>();
-  for (const path of copiedSkillPaths) {
-    const folderName = path.split('/').pop() || '';
-    sourcePathMap.set(folderName, path);
   }
 
   const skills: Skill[] = [];
@@ -81,15 +72,17 @@ export function loadSkills(skillsDir: string, copiedSkillPaths: string[] = []): 
     const frontmatter = parseFrontmatter(content);
 
     if (frontmatter) {
+      const tags = [entry.name];
+      if (type) tags.push(type);
+
       skills.push({
         id: toSnakeCase(entry.name),
         name: frontmatter.name || toTitleCase(entry.name),
         description: frontmatter.description,
-        tags: [entry.name],
+        tags,
         examples: [],
         inputModes: ['text/plain'],
         outputModes: ['text/plain'],
-        sourcePath: sourcePathMap.get(entry.name),
       });
     }
   }

@@ -85,7 +85,7 @@ dev:
 
         npm install
         mkdir -p ~/.claude/skills
-        ln -sf /app/skills/* ~/.claude/skills/ 2>/dev/null || true
+        ln -sf /app/examples/ark/skills/* ~/.claude/skills/ 2>/dev/null || true
 
         export FORCE_COLOR=1
         export CLAUDE_TIMEOUT_SECONDS=900

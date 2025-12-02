@@ -138,7 +138,6 @@ The following env vars are supported:
 | `CLAUDE_PERMISSION_MODE` | Permission mode | `acceptEdits` |
 | `CLAUDE_TIMEOUT_SECONDS` | Execution timeout | `3600` |
 | `CLAUDE_CODE_WORKSPACE_DIR` | Working directory | `./workspace` (local) or `/workspace` (docker/helm) |
-| `ADDITIONAL_SKILLS_DIR` | Copy skills from this directory to workspace | - |
 | `FORCE_COLOR` | Enable colors in logs | `0` |
 
 ### Workspace
@@ -167,12 +166,19 @@ If tools require configuration, config files or env vars can be passed to the co
 
 ## Skills
 
-Claude Code loads skills from `workspace/.claude/skills/`. Use `ADDITIONAL_SKILLS_DIR` or `--additional-skills-dir` to copy extra skills into the workspace on startup.
+Claude Code loads skills from two locations:
+
+- **User skills**: `~/.claude/skills/` - Global skills, always available
+- **Project skills**: `workspace/.claude/skills/` - Repo-specific skills
+
+For containers, mount skills to the user directory:
 
 ```bash
-# Custom skills directory
-ADDITIONAL_SKILLS_DIR=/path/to/skills npm start
-npm start -- --additional-skills-dir=/path/to/skills
+# Docker - mount skills to user directory
+docker run -v /path/to/skills:/home/ark/.claude/skills:ro ...
+
+# See examples/ark/ for a complete example with skills
+make docker-run-ark
 ```
 
 ## Examples

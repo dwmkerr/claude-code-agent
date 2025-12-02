@@ -3,7 +3,7 @@
 // Force colors in non-TTY environments (e.g., container logs)
 process.env.FORCE_COLOR = '1';
 
-import { mkdirSync, cpSync, existsSync, readdirSync } from 'fs';
+import { mkdirSync } from 'fs';
 import { join } from 'path';
 import dotenv from 'dotenv';
 import express from 'express';
@@ -12,31 +12,6 @@ import { setupA2ARoutes } from './routes.js';
 import { loadConfig } from './config.js';
 import { loadSkills } from './skill-loader.js';
 import pkg from '../package.json' with { type: 'json' };
-
-// Parse --additional-skills-dir CLI argument
-function getAdditionalSkillsDir(): string | undefined {
-  const arg = process.argv.find(a => a.startsWith('--additional-skills-dir='));
-  if (arg) return arg.split('=')[1];
-  return process.env.ADDITIONAL_SKILLS_DIR;
-}
-
-// Copy skills from source directory to workspace/.claude/skills/
-function copySkills(sourceDir: string, targetDir: string): string[] {
-  const copied: string[] = [];
-  if (!existsSync(sourceDir)) return copied;
-
-  mkdirSync(targetDir, { recursive: true });
-  const entries = readdirSync(sourceDir, { withFileTypes: true });
-
-  for (const entry of entries) {
-    if (!entry.isDirectory()) continue;
-    const src = join(sourceDir, entry.name);
-    const dest = join(targetDir, entry.name);
-    cpSync(src, dest, { recursive: true });
-    copied.push(`${sourceDir}/${entry.name}`);
-  }
-  return copied;
-}
 
 // Load .env file if present
 const dotenvResult = dotenv.config();
@@ -62,18 +37,14 @@ if (!process.env.ANTHROPIC_API_KEY) {
   process.exit(1);
 }
 
-// Copy additional skills to workspace if configured
-const additionalSkillsDir = getAdditionalSkillsDir();
-const workspaceSkillsDir = join(config.workspace, '.claude', 'skills');
-const copiedSkillPaths: string[] = [];
-
-if (additionalSkillsDir) {
-  const copied = copySkills(additionalSkillsDir, workspaceSkillsDir);
-  copiedSkillPaths.push(...copied);
-}
-
-// Load skills from workspace/.claude/skills
-const skills = loadSkills(workspaceSkillsDir, copiedSkillPaths);
+// Load skills from both locations:
+// - User skills: ~/.claude/skills/ (global, mount here for container use)
+// - Project skills: workspace/.claude/skills/ (repo-specific)
+const userSkillsDir = join(process.env.HOME || '/home/ark', '.claude', 'skills');
+const projectSkillsDir = join(config.workspace, '.claude', 'skills');
+const userSkills = loadSkills(userSkillsDir, 'user');
+const projectSkills = loadSkills(projectSkillsDir, 'project');
+const skills = [...userSkills, ...projectSkills];
 
 const app = express();
 
@@ -97,15 +68,13 @@ const server = app.listen(PORT, HOST, () => {
     loadedEnvVars.forEach(v => console.log(`  ${v}`));
   }
   console.log(`Workspace: ${config.workspace}`);
-  if (additionalSkillsDir) {
-    console.log(`Additional skills: ${additionalSkillsDir}`);
+  if (userSkills.length > 0) {
+    console.log('User skills:');
+    userSkills.forEach(s => console.log(`  ${s.name}`));
   }
-  if (skills.length > 0) {
-    console.log('Loaded skills:');
-    skills.forEach(s => {
-      const source = s.sourcePath ? ` (${s.sourcePath})` : '';
-      console.log(`  ${s.name}${source}`);
-    });
+  if (projectSkills.length > 0) {
+    console.log('Project skills:');
+    projectSkills.forEach(s => console.log(`  ${s.name}`));
   }
   console.log(`Running on: http://${HOST}:${PORT}`);
 }).on('error', (err) => {

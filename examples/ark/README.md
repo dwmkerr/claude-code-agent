@@ -7,9 +7,6 @@ Use the Claude Code Agent for testing [Ark](https://github.com/mckinsey/agents-a
 The agent needs Docker access to create Kind clusters.
 
 ```bash
-# Run local with live-reload. Unsafe.
-npm run dev:ark
-
 # Run in a container, mount skills, expose 2222.
 make docker-run-ark
 
@@ -29,3 +26,12 @@ This example includes skills in `examples/ark/skills/`:
 - **ark-setup** - Set up Ark from source with Kind
 - **ark-testing** - Test dashboard UI with Playwright
 - **ark-analysis** - Analyze Ark codebase and issues
+
+## Testing
+
+Run the following command to issue the query:
+
+```bash
+query="Check out https://github.com/mckinsey/agents-at-scale-ark/pull/531 and use the ark-setup skill to install ark and give me the output of 'ark status'"
+
+TODO curl into the a2a server on http://locahost:2222

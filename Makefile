@@ -34,4 +34,12 @@ docker-run: docker-build # Build and run the Docker container.
 
 .PHONY: docker-run-ark
 docker-run-ark: docker-build # Run with Ark skills and Docker socket for Kind. See examples/ark/
-	docker run --rm -it --init -v $(PWD)/.env:/app/.env:ro -v $(PWD)/workspace:/workspace -v $(PWD)/examples/ark/skills:/skills:ro -v /var/run/docker.sock:/var/run/docker.sock -e ADDITIONAL_SKILLS_DIR=/skills -p 2222:2222 claude-code-agent
+	# --group-add: Grant container user access to host's Docker socket by adding
+	# the socket's group ID to the user's supplementary groups.
+	docker run --rm -it --init \
+		--group-add $$(stat -c '%g' /var/run/docker.sock) \
+		-v $(PWD)/.env:/app/.env:ro \
+		-v $(PWD)/workspace:/workspace \
+		-v $(PWD)/examples/ark/skills:/home/ark/.claude/skills:ro \
+		-v /var/run/docker.sock:/var/run/docker.sock \
+		-p 2222:2222 claude-code-agent
