@@ -1,9 +1,18 @@
 import chalk from 'chalk';
 
-// Truncate text to max length with ellipsis
-function truncate(text: string, maxLen: number): string {
-  if (text.length <= maxLen) return text;
-  return text.substring(0, maxLen - 3) + '...';
+// External indent added by caller ("      < " = 8 chars)
+const EXTERNAL_INDENT = 8;
+
+// Get terminal width
+function getTermWidth(): number {
+  return process.stdout.columns || 80;
+}
+
+// Truncate text to fit remaining width after prefix
+function truncateToFit(text: string, prefixLen: number): string {
+  const available = Math.max(getTermWidth() - EXTERNAL_INDENT - prefixLen - 3, 20);
+  if (text.length <= available) return text;
+  return text.substring(0, available) + '...';
 }
 
 // Format a Claude CLI JSON chunk for console output
@@ -22,7 +31,8 @@ export function formatChunkPreview(msg: any): string {
       return `${typeColor('system')}:${chalk.yellow('init')} ${chalk.dim(`session=${msg.session_id.substring(0, 8)}...`)}`;
     }
     if (subtype === 'result' || msg.msg_type === 'result') {
-      const result = truncate((msg.result || '').replace(/\s+/g, ' '), 60);
+      const prefix = 'system:result ';
+      const result = truncateToFit((msg.result || '').replace(/\s+/g, ' '), prefix.length + 2);
       return `${typeColor('system')}:${chalk.yellow('result')} ${chalk.dim(`"${result}"`)}`;
     }
     return `${typeColor('system')}:${chalk.yellow(subtype)}`;
@@ -37,11 +47,17 @@ export function formatChunkPreview(msg: any): string {
   if (!first) return `${typeColor(type)}: ${chalk.dim('(empty)')}`;
 
   if (first.type === 'text' && first.text) {
-    const text = truncate(first.text.replace(/\s+/g, ' '), 60);
-    return `${typeColor(type)}: ${chalk.dim(`"${text}"`)}`;
+    const prefix = `${type}: `;
+    const text = truncateToFit(first.text.replace(/\s+/g, ' '), prefix.length + 2);
+    // Assistant text messages in white for visibility, others dim
+    const textColor = type === 'assistant' ? chalk.white : chalk.dim;
+    return `${typeColor(type)}: ${textColor(`"${text}"`)}`;
   }
   if (first.type === 'tool_use') {
-    return `${typeColor(type)}: ${chalk.yellow('tool_use')} ${chalk.dim(first.name || 'unknown')}`;
+    const toolName = first.name || 'unknown';
+    const prefix = `${type}: ${toolName} `;
+    const params = first.input ? truncateToFit(JSON.stringify(first.input), prefix.length) : '';
+    return `${typeColor(type)}: ${chalk.blue(toolName)} ${chalk.dim(params)}`;
   }
   if (first.type === 'tool_result') {
     let preview = '';
@@ -51,7 +67,8 @@ export function formatChunkPreview(msg: any): string {
       preview = first.content[0].text.replace(/\s+/g, ' ');
     }
     if (preview) {
-      return `${typeColor(type)}: ${chalk.yellow('tool_result')} ${chalk.dim(`"${truncate(preview, 50)}"`)}`;
+      const prefix = `${type}: tool_result `;
+      return `${typeColor(type)}: ${chalk.yellow('tool_result')} ${chalk.dim(`"${truncateToFit(preview, prefix.length + 2)}"`)}`;
     }
     return `${typeColor(type)}: ${chalk.yellow('tool_result')} ${chalk.dim('(ok)')}`;
   }

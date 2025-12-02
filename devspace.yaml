@@ -33,6 +33,30 @@ pipelines:
     create_deployments --all
     start_dev --all
 
+# Ark example profile - enables DinD for Kind clusters. See examples/ark/
+# Usage: devspace dev -p ark
+profiles:
+  - name: ark
+    patches:
+      - op: add
+        path: deployments.claude-agent.helm.values.env.DOCKER_HOST
+        value: tcp://localhost:2375
+      - op: add
+        path: deployments.claude-agent.helm.values.extraContainers
+        value:
+          - name: dind
+            image: docker:dind
+            securityContext:
+              privileged: true
+            volumeMounts:
+              - name: dind-storage
+                mountPath: /var/lib/docker
+      - op: add
+        path: deployments.claude-agent.helm.values.extraVolumes
+        value:
+          - name: dind-storage
+            emptyDir: {}
+
 deployments:
   claude-agent:
     helm:
@@ -47,6 +71,8 @@ deployments:
 dev:
   claude-agent:
     imageSelector: claude-agent
+    # Container to target when multiple containers exist (e.g., ark profile adds dind sidecar)
+    container: claude-code-agent
 
     devImage: node:20-slim
     command:
@@ -61,7 +87,7 @@ dev:
 
         npm install
         mkdir -p ~/.claude/skills
-        ln -sf /app/skills/* ~/.claude/skills/ 2>/dev/null || true
+        ln -sf /app/examples/ark/skills/* ~/.claude/skills/ 2>/dev/null || true
 
         export FORCE_COLOR=1
         export CLAUDE_TIMEOUT_SECONDS=900

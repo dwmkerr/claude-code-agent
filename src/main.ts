@@ -4,11 +4,13 @@
 process.env.FORCE_COLOR = '1';
 
 import { mkdirSync } from 'fs';
+import { join } from 'path';
 import dotenv from 'dotenv';
 import express from 'express';
 import chalk from 'chalk';
 import { setupA2ARoutes } from './routes.js';
 import { loadConfig } from './config.js';
+import { loadSkills } from './skill-loader.js';
 import pkg from '../package.json' with { type: 'json' };
 
 // Load .env file if present
@@ -35,6 +37,15 @@ if (!process.env.ANTHROPIC_API_KEY) {
   process.exit(1);
 }
 
+// Load skills from both locations:
+// - User skills: ~/.claude/skills/ (global, mount here for container use)
+// - Project skills: workspace/.claude/skills/ (repo-specific)
+const userSkillsDir = join(process.env.HOME || '/home/ark', '.claude', 'skills');
+const projectSkillsDir = join(config.workspace, '.claude', 'skills');
+const userSkills = loadSkills(userSkillsDir, 'user');
+const projectSkills = loadSkills(projectSkillsDir, 'project');
+const skills = [...userSkills, ...projectSkills];
+
 const app = express();
 
 app.use(express.json());
@@ -44,8 +55,8 @@ app.get('/health', (_req, res) => {
   res.json({ status: 'ok' });
 });
 
-// Setup A2A routes
-setupA2ARoutes(app, HOST, PORT, config);
+// Setup A2A routes with loaded skills
+setupA2ARoutes(app, HOST, PORT, config, skills);
 
 const server = app.listen(PORT, HOST, () => {
   const apiKey = process.env.ANTHROPIC_API_KEY || '';
@@ -57,6 +68,14 @@ const server = app.listen(PORT, HOST, () => {
     loadedEnvVars.forEach(v => console.log(`  ${v}`));
   }
   console.log(`Workspace: ${config.workspace}`);
+  if (userSkills.length > 0) {
+    console.log('User skills:');
+    userSkills.forEach(s => console.log(`  ${s.name}`));
+  }
+  if (projectSkills.length > 0) {
+    console.log('Project skills:');
+    projectSkills.forEach(s => console.log(`  ${s.name}`));
+  }
   console.log(`Running on: http://${HOST}:${PORT}`);
 }).on('error', (err) => {
   console.error(chalk.red(`error: ${err.message}`));

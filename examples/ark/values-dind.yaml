@@ -1,0 +1,23 @@
+# Values for deploying with Docker-in-Docker sidecar.
+# Enables the agent to create Kind clusters for Ark testing.
+#
+# Usage:
+#   helm install claude-code-agent ./chart \
+#     -f examples/ark/values-dind.yaml \
+#     --set apiKey=$ANTHROPIC_API_KEY
+
+env:
+  DOCKER_HOST: tcp://localhost:2375
+
+extraContainers:
+  - name: dind
+    image: docker:dind
+    securityContext:
+      privileged: true
+    volumeMounts:
+      - name: dind-storage
+        mountPath: /var/lib/docker
+
+extraVolumes:
+  - name: dind-storage
+    emptyDir: {}

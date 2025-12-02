@@ -230,10 +230,9 @@ export class ClaudeCodeExecutor implements AgentExecutor {
 
       // Send final response as a completed task
       const finalText = accumulatedText || 'No response from Claude Code';
-      // Crop to single line (replace newlines with space, limit to 80 chars)
       const oneLine = finalText.replace(/\s+/g, ' ').trim();
-      const responsePreview = oneLine.substring(0, 80);
-      console.log(`    ← Response: "${responsePreview}${oneLine.length > 80 ? '...' : ''}"`);
+      const responsePreview = oneLine.substring(0, 60);
+      console.log(`    ← Response: "${responsePreview}${oneLine.length > 60 ? '...' : ''}"`);
 
       const responseMessage = {
         kind: Kind.Message,
@@ -286,8 +285,8 @@ export class ClaudeCodeExecutor implements AgentExecutor {
         errorMessage = error.message || 'Unknown error';
       }
 
-      const errorPreview = errorMessage.substring(0, 100);
-      console.log(`    ✗ Error: "${errorPreview}${errorMessage.length > 100 ? '...' : ''}"`);
+      const errorPreview = errorMessage.substring(0, 60);
+      console.log(`    ✗ Error: "${errorPreview}${errorMessage.length > 60 ? '...' : ''}"`);
 
       throw new Error(`Claude Code error: ${errorMessage}`);
     }
