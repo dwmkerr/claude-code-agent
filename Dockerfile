@@ -10,10 +10,12 @@ FROM node:20-slim
 
 # Claude Code uses Bash to run commands like curl, git, gh, etc.
 # docker.io provides CLI for Kind when Docker socket is mounted.
+# net-tools provides netstat for debugging.
 RUN apt-get update && apt-get install -y \
     git \
     curl \
     docker.io \
+    net-tools \
     && rm -rf /var/lib/apt/lists/*
 
 # Install GitHub CLI.
@@ -24,10 +26,14 @@ RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
     && apt-get update && apt-get install -y gh \
     && rm -rf /var/lib/apt/lists/*
 
-# Install kubectl, devspace, kind - for Ark development.
+# Install kubectl, helm, devspace, kind - for Ark development.
 RUN curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/$(dpkg --print-architecture)/kubectl" \
     && install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl \
     && rm kubectl
+RUN ARCH=$(dpkg --print-architecture) && \
+    curl -fsSL https://get.helm.sh/helm-v3.16.3-linux-${ARCH}.tar.gz | tar xz -C /tmp && \
+    mv /tmp/linux-${ARCH}/helm /usr/local/bin/helm && \
+    rm -rf /tmp/linux-${ARCH}
 RUN curl -fsSL https://github.com/devspace-sh/devspace/releases/latest/download/devspace-linux-$(dpkg --print-architecture) -o /usr/local/bin/devspace \
     && chmod +x /usr/local/bin/devspace
 RUN curl -Lo /usr/local/bin/kind https://kind.sigs.k8s.io/dl/v0.25.0/kind-linux-$(dpkg --print-architecture) \
