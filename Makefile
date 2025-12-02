@@ -34,13 +34,13 @@ docker-run: docker-build # Build and run the Docker container.
 
 .PHONY: docker-run-ark
 docker-run-ark: docker-build # Run with Ark skills and Docker socket for Kind. See examples/ark/
-	# --group-add: Grant container user access to host's Docker socket by adding
-	# the socket's group ID to the user's supplementary groups.
-	# stat -f (macOS) or stat -c (Linux)
+	# --user root: Required for Docker socket access. On macOS Docker Desktop,
+	# --group-add doesn't work; on Linux, root avoids needing to detect the
+	# socket's group ID. Kind also requires elevated permissions.
 	docker run --rm -it --init \
-		--group-add $$(stat -f '%g' /var/run/docker.sock 2>/dev/null || stat -c '%g' /var/run/docker.sock) \
+		--user root \
 		-v $(PWD)/.env:/app/.env:ro \
 		-v $(PWD)/workspace:/workspace \
-		-v $(PWD)/examples/ark/skills:/home/ark/.claude/skills:ro \
+		-v $(PWD)/examples/ark/skills:/root/.claude/skills:ro \
 		-v /var/run/docker.sock:/var/run/docker.sock \
 		-p 2222:2222 claude-code-agent

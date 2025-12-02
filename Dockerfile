@@ -37,8 +37,13 @@ WORKDIR /app
 
 RUN npm install -g @anthropic-ai/claude-code
 
+# Create ark user with ~/.claude directory pre-created.
+# Claude Code stores state in ~/.claude/ (todos, settings, etc).
+# Pre-creating ensures ark owns it. Volume mounts overlay subdirectories:
+#   ~/.claude/skills/ - read-only skills mount (:ro)
+#   ~/.claude/todos/  - writable, created by Claude Code at runtime
 RUN adduser --system --uid 1001 --home /home/ark ark && \
-    mkdir -p /home/ark && \
+    mkdir -p /home/ark/.claude && \
     chown -R ark:nogroup /home/ark
 
 COPY package*.json ./
