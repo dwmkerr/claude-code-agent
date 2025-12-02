@@ -162,3 +162,5 @@ kubectl port-forward -n phoenix svc/phoenix-svc 6006:6006
 ## Important
 
 **DO NOT use `scripts/quickstart.sh`** - it is deprecated. Always use `ark-cli` as described above.
+
+**DO NOT use `npm install -g @agents-at-scale/ark`** - always build ark-cli from source to match the PR code being tested.
