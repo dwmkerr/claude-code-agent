@@ -59,6 +59,10 @@ EOF
 Or with Ark Query resource:
 
 ```bash
+# Check agents exist.
+kubectl get a2aserver
+kubectl get agents
+
 kubectl apply -f - <<EOF
 apiVersion: ark.mckinsey.com/v1alpha1
 kind: Query
