@@ -49,7 +49,9 @@ export function formatChunkPreview(msg: any): string {
   if (first.type === 'text' && first.text) {
     const prefix = `${type}: `;
     const text = truncateToFit(first.text.replace(/\s+/g, ' '), prefix.length + 2);
-    return `${typeColor(type)}: ${chalk.dim(`"${text}"`)}`;
+    // Assistant text messages in white for visibility, others dim
+    const textColor = type === 'assistant' ? chalk.white : chalk.dim;
+    return `${typeColor(type)}: ${textColor(`"${text}"`)}`;
   }
   if (first.type === 'tool_use') {
     const toolName = first.name || 'unknown';
