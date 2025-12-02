@@ -112,3 +112,13 @@ EOF
 # Watch query status
 kubectl get query test-query -w
 ```
+
+## Debugging
+
+```bash
+# Get container ID
+docker ps --filter ancestor=claude-code-agent -q
+
+# View chunk log (if CLAUDE_LOG_PATH was set)
+docker exec $(docker ps --filter ancestor=claude-code-agent -q) cat /tmp/claude-code-agent-log.txt
+```
