@@ -5,7 +5,7 @@ description: Set up and install the Ark platform from source. Use this skill whe
 
 # Ark Setup
 
-This skill helps you set up and install the Ark platform from source.
+This skill helps you set up and install the Ark platform from source using the ark-cli.
 
 ## When to use this skill
 
@@ -21,23 +21,23 @@ Before installing Ark, ensure you have:
 
 1. **Kubernetes cluster** - Kind, minikube, or similar
 2. **kubectl** - Kubernetes CLI configured for your cluster
-3. **Node.js** - For building the ark-cli tool
-4. **devspace** - For deploying Ark services
+3. **Helm** - For installing Ark components
+4. **Node.js** - For building the ark-cli tool
 
 ## Step 1: Clone the Ark repository
 
 First, ensure you have cloned the Ark repository. If the user provided an org/repo, use that. Otherwise, use the default:
 
 ```bash
-git clone git@github.com:mckinsey/agents-at-scale-ark.git
+git clone https://github.com/mckinsey/agents-at-scale-ark.git
 cd agents-at-scale-ark
 ```
 
 If working on a pull request, checkout the PR branch:
 
 ```bash
-git fetch origin pull/<PR_NUMBER>/head:<BRANCH_NAME>
-git checkout <BRANCH_NAME>
+git fetch origin pull/<PR_NUMBER>/head:pr-<PR_NUMBER>
+git checkout pr-<PR_NUMBER>
 ```
 
 ## Step 2: Set up Kubernetes cluster
@@ -45,87 +45,86 @@ git checkout <BRANCH_NAME>
 If you don't have a Kubernetes cluster running, create one with Kind:
 
 ```bash
-# Create a Kind cluster
-kind create cluster --name ark
-
-# Verify cluster is ready
+kind create cluster --name ark-cluster
 kubectl cluster-info
 ```
 
-## Step 3: Build the ark-cli
+**Note for Docker-in-Docker:** If running inside a container with Kind, you may need to use `kind get kubeconfig --internal` and update the server address, or run commands via `docker exec <kind-node>`.
 
-The ark-cli tool is used to check installation status and manage Ark:
+## Step 3: Build the ark-cli from source
+
+Build the CLI from the cloned repository. This ensures you use the version matching the code being tested:
 
 ```bash
-cd agents-at-scale-ark/tools/ark-cli
+cd agents-at-scale-ark
+npm install
+cd tools/ark-cli
 npm install
 npm run build
 ```
 
-You can then use the cli from within the `tools/ark-cli` directory:
+## Step 4: Install Ark using ark-cli
+
+Use the built CLI to install Ark. Use direct node execution for reliability:
 
 ```bash
-node dist/index.js status
+# From the tools/ark-cli directory
+node dist/index.js install --yes --wait-for-ready 5m
 ```
 
-## Step 4: Deploy Ark
-
-Return to the cloned Ark repository root directory and deploy using devspace:
+Or if you're in the repo root:
 
 ```bash
-cd agents-at-scale-ark
-devspace deploy
+node tools/ark-cli/dist/index.js install --yes --wait-for-ready 5m
 ```
 
-**Note:** Always return to the `agents-at-scale-ark` directory when running devspace or other Ark commands.
+The `--yes` flag auto-confirms prompts, and `--wait-for-ready` waits for services to be ready.
 
-This deploys all Ark services to your Kubernetes cluster.
+## Step 5: Verify installation
 
-## Step 5: Monitor installation
-
-Ark installation can take **up to 15 minutes** as it pulls images and initializes services.
-
-Check installation status using the ark-cli:
+Check installation status:
 
 ```bash
-ark status
+node tools/ark-cli/dist/index.js status
 ```
 
-Or use kubectl directly:
+Or use kubectl:
 
 ```bash
 kubectl get pods -n ark
-kubectl get pods --all-namespaces | grep ark
-```
-
-Wait until all services show as **Ready**.
-
-```bash
-# Check all pods are running
-kubectl get pods -n ark
-
-# Check ark services
+kubectl get pods -n ark-system
 kubectl get services -n ark
-
-# View ark-api logs
-kubectl logs -n ark deployment/ark-api
-
-# Test the API endpoint (if exposed)
-kubectl port-forward svc/ark-api 8080:80
-curl http://localhost:8080/health
 ```
+
+Wait until all pods show as **Running** and services are ready.
 
 ## Troubleshooting
 
-Check pod status:
+### Check pod status
 ```bash
-# Note that the ark controller is in namespace 'ark-system' and ark tenant resources are in the namespace 'default'
-kubectl get pods -A -o wide
+kubectl get pods -A -o wide | grep -E '(ark|cert-manager)'
+kubectl describe pod -n ark <pod-name>
+```
+
+### View logs
+```bash
+kubectl logs -n ark deployment/ark-api
+kubectl logs -n ark-system deployment/ark-controller
+```
+
+### Kubeconfig issues with Kind in Docker
+If kubectl/helm can't reach the cluster API server:
+```bash
+# Get internal kubeconfig
+kind get kubeconfig --name ark-cluster --internal > ~/.kube/config
+
+# Or run commands inside the Kind node
+docker exec ark-cluster-control-plane kubectl get pods -A
 ```
 
 ## Working with Ark
 
-Once Ark is running, you can use `kubectl`:
+Once Ark is running:
 
 ```bash
 kubectl apply -f samples/agents/my-agent.yaml
@@ -135,10 +134,6 @@ kubectl get queries
 kubectl get teams
 
 kubectl describe agent <agent-name>
-kubectl describe query <query-name>
-
-kubectl delete agent <agent-name>
-kubectl delete query <query-name>
 ```
 
 ## Phoenix Telemetry
@@ -146,12 +141,7 @@ kubectl delete query <query-name>
 Install Phoenix for OpenTelemetry tracing:
 
 ```bash
-ark install marketplace/services/phoenix
-```
-
-Check status:
-```bash
-kubectl get pods -n phoenix
+node tools/ark-cli/dist/index.js install marketplace/services/phoenix
 ```
 
 Access dashboard:
