@@ -34,4 +34,24 @@ Run the following command to issue the query:
 ```bash
 query="Check out https://github.com/mckinsey/agents-at-scale-ark/pull/531 and use the ark-setup skill to install ark and give me the output of 'ark status'"
 
-TODO curl into the a2a server on http://locahost:2222
+curl -N -X POST http://localhost:2222/ \
+  -H "Content-Type: application/json" \
+  -d @- << EOF
+{
+  "jsonrpc": "2.0",
+  "method": "message/stream",
+  "params": {
+    "message": {
+      "messageId": "1",
+      "contextId": "ctx-1",
+      "role": "user",
+      "parts": [{
+        "kind": "text",
+        "text": "${query}"
+      }]
+    }
+  },
+  "id": 1
+}
+EOF
+```
