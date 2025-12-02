@@ -55,3 +55,24 @@ curl -N -X POST http://localhost:2222/ \
 }
 EOF
 ```
+
+Or with Ark Query resource:
+
+```bash
+kubectl apply -f - <<EOF
+apiVersion: ark.mckinsey.com/v1alpha1
+kind: Query
+metadata:
+  name: test-query
+spec:
+  targets:
+    - kind: Agent
+      name: claude-code-agent
+  input:
+    - role: user
+      content: "${query}"
+EOF
+
+# Watch query status
+kubectl get query test-query -w
+```
