@@ -42,14 +42,22 @@ git checkout pr-<PR_NUMBER>
 
 ## Step 2: Set up Kubernetes cluster
 
-If you don't have a Kubernetes cluster running, create one with Kind:
+If you don't have a Kubernetes cluster running, create one with Kind.
+
+**Important:** This agent runs in Docker, so always use `--internal` when exporting kubeconfig. This ensures kubectl/helm can reach the Kind cluster via Docker network addresses instead of localhost.
 
 ```bash
+# Create Kind cluster
 kind create cluster --name ark-cluster
+
+# Export kubeconfig with internal addresses (required for Docker-in-Docker)
+kind export kubeconfig --name ark-cluster --internal
+
+# Verify connection
 kubectl cluster-info
 ```
 
-**Note for Docker-in-Docker:** If running inside a container with Kind, you may need to use `kind get kubeconfig --internal` and update the server address, or run commands via `docker exec <kind-node>`.
+If `kubectl cluster-info` fails with connection refused, re-run the export with `--internal`.
 
 ## Step 3: Build the ark-cli from source
 
@@ -112,14 +120,15 @@ kubectl logs -n ark deployment/ark-api
 kubectl logs -n ark-system deployment/ark-controller
 ```
 
-### Kubeconfig issues with Kind in Docker
-If kubectl/helm can't reach the cluster API server:
+### Kubeconfig issues with Kind
+If kubectl/helm can't reach the cluster API server (connection refused to 127.0.0.1):
 ```bash
-# Get internal kubeconfig
-kind get kubeconfig --name ark-cluster --internal > ~/.kube/config
+# Re-export kubeconfig with internal Docker network addresses
+kind export kubeconfig --name ark-cluster --internal
 
-# Or run commands inside the Kind node
-docker exec ark-cluster-control-plane kubectl get pods -A
+# Verify the server address is NOT 127.0.0.1
+kubectl config view --minify | grep server
+# Should show: server: https://ark-cluster-control-plane:6443
 ```
 
 ## Working with Ark
