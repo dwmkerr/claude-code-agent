@@ -116,9 +116,7 @@ kubectl get query test-query -w
 ## Debugging
 
 ```bash
-# Get container ID
-docker ps --filter ancestor=claude-code-agent -q
-
-# View chunk log (if CLAUDE_LOG_PATH was set)
+# View chunk logs from make docker-run-ark (if CLAUDE_LOG_PATH was set)
+# Log is JSONL format (one JSON object per line)
 docker exec $(docker ps --filter ancestor=claude-code-agent -q) cat /tmp/claude-code-agent-log.txt
 ```

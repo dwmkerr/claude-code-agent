@@ -43,5 +43,5 @@ docker-run-ark: docker-build # Run with Ark skills and Docker socket for Kind. S
 		-v $(PWD)/workspace:/workspace \
 		-v $(PWD)/examples/ark/skills:/root/.claude/skills:ro \
 		-v /var/run/docker.sock:/var/run/docker.sock \
-		-e CLAUDE_LOG_PATH=/tmp/claude-code-agent-log.txt \
+		-e CLAUDE_LOG_PATH=/tmp/claude-code-agent-log.jsonl \
 		-p 2222:2222 claude-code-agent
