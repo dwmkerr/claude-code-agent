@@ -71,6 +71,8 @@ deployments:
 dev:
   claude-agent:
     imageSelector: claude-agent
+    # Container to target when multiple containers exist (e.g., ark profile adds dind sidecar)
+    container: claude-code-agent
 
     devImage: node:20-slim
     command:
