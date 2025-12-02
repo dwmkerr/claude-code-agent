@@ -158,3 +158,7 @@ Access dashboard:
 kubectl port-forward -n phoenix svc/phoenix-svc 6006:6006
 # Open http://localhost:6006
 ```
+
+## Important
+
+**DO NOT use `scripts/quickstart.sh`** - it is deprecated. Always use `ark-cli` as described above.
