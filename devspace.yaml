@@ -74,24 +74,15 @@ dev:
     # Container to target when multiple containers exist (e.g., ark profile adds dind sidecar)
     container: claude-code-agent
 
-    devImage: node:20-slim
+    # Use the actual image (has docker, kubectl, etc.) - no devImage replacement
     command:
       - sh
       - -c
       - |
         cd /app
-        apt-get update && apt-get install -y git
-
-        npm install -g @anthropic-ai/claude-code
-        export PATH="$(npm prefix -g)/bin:$PATH"
-
         npm install
-        mkdir -p ~/.claude/skills
-        ln -sf /app/examples/ark/skills/* ~/.claude/skills/ 2>/dev/null || true
-
-        export FORCE_COLOR=1
-        export CLAUDE_TIMEOUT_SECONDS=900
-
+        # Copy ark example claude config (CLAUDE.md + skills)
+        cp -r /app/examples/ark/claude/* ~/.claude/ 2>/dev/null || true
         npm run dev
     logs:
       lastLines: 50

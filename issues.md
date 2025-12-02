@@ -17,6 +17,10 @@
 - [ ] phoenix skill
 - [ ] maybe more configurable with --skills-dir or something, opt-in for ark skills, document how to customise
 
+## Tooling
+
+- [ ] extensible docuker image
+
 ## Config
 
 - [ ] easier way to install additional tools such as 'wget'? Offer apt?

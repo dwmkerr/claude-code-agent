@@ -19,13 +19,17 @@ helm install claude-code-agent ./chart \
   --set apiKey=$ANTHROPIC_API_KEY
 ```
 
-## Skills
+## Claude Configuration
 
-This example includes skills in `examples/ark/skills/`:
+This example includes Claude config in `examples/ark/claude/`:
 
-- **ark-setup** - Set up Ark from source with Kind
-- **ark-testing** - Test dashboard UI with Playwright
-- **ark-analysis** - Analyze Ark codebase and issues
+- **CLAUDE.md** - System prompt with critical instructions (e.g., Kind `--internal` flag)
+- **skills/** - Skills for Ark workflows:
+  - **ark-setup** - Set up Ark from source with Kind
+  - **ark-testing** - Test dashboard UI with Playwright
+  - **ark-analysis** - Analyze Ark codebase and issues
+
+The claude folder is copied to `~/.claude/` on startup.
 
 ## Testing
 
