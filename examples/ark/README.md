@@ -56,6 +56,34 @@ curl -N -X POST http://localhost:2222/ \
 EOF
 ```
 
+For analysis, this snippet.
+
+```bash
+query="Check out https://github.com/mckinsey/agents-at-scale-ark/pull/531 and use the ark-analysis skill to build a suggested implementation plan"
+
+curl -N -X POST http://localhost:2222/ \
+  -H "Content-Type: application/json" \
+  -d @- << EOF
+{
+  "jsonrpc": "2.0",
+  "method": "message/stream",
+  "params": {
+    "message": {
+      "messageId": "1",
+      "contextId": "ctx-1",
+      "role": "user",
+      "parts": [{
+        "kind": "text",
+        "text": "${query}"
+      }]
+    }
+  },
+  "id": 1
+}
+EOF
+```
+
+
 Or with Ark Query resource:
 
 ```bash
