@@ -89,6 +89,9 @@ const server = app.listen(PORT, HOST, () => {
     loadedEnvVars.forEach(v => console.log(`  ${v}`));
   }
   console.log(`Workspace: ${config.workspace}`);
+  if (config.logPath) {
+    console.log(`Log: ${config.logPath}`);
+  }
   if (userClaudeMdLines !== null) {
     console.log(`  ~/CLAUDE.md: ${userClaudeMdLines} lines`);
   }
@@ -102,9 +105,6 @@ const server = app.listen(PORT, HOST, () => {
   if (projectSkills.length > 0) {
     console.log('Project skills:');
     projectSkills.forEach(s => console.log(`  ${s.name}`));
-  }
-  if (config.logPath) {
-    console.log(`Logging chunks to: ${config.logPath}`);
   }
   console.log(`Running on: http://${HOST}:${PORT}`);
 }).on('error', (err) => {
