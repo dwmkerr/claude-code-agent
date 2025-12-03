@@ -1,22 +1,19 @@
 import chalk from 'chalk';
 
-// External indent added by caller ("      < " = 8 chars)
-const EXTERNAL_INDENT = 8;
-
 // Get terminal width
-function getTermWidth(): number {
+export function getTermWidth(): number {
   return process.stdout.columns || 80;
 }
 
-// Truncate text to fit remaining width after prefix
-function truncateToFit(text: string, prefixLen: number): string {
-  const available = Math.max(getTermWidth() - EXTERNAL_INDENT - prefixLen - 3, 20);
+// Truncate text to fit remaining width after prefix and indent
+export function truncateToFit(text: string, prefixLen: number, indent: number, termWidth: number): string {
+  const available = Math.max(termWidth - indent - prefixLen - 3, 20);
   if (text.length <= available) return text;
   return text.substring(0, available) + '...';
 }
 
 // Format a Claude CLI JSON chunk for console output
-export function formatChunkPreview(msg: any): string {
+export function formatChunkPreview(msg: any, indent: number, termWidth: number): string {
   const type = msg.type || 'unknown';
 
   // Type colors
@@ -32,7 +29,7 @@ export function formatChunkPreview(msg: any): string {
     }
     if (subtype === 'result' || msg.msg_type === 'result') {
       const prefix = 'system:result ';
-      const result = truncateToFit((msg.result || '').replace(/\s+/g, ' '), prefix.length + 2);
+      const result = truncateToFit((msg.result || '').replace(/\s+/g, ' '), prefix.length + 2, indent, termWidth);
       return `${typeColor('system')}:${chalk.yellow('result')} ${chalk.dim(`"${result}"`)}`;
     }
     return `${typeColor('system')}:${chalk.yellow(subtype)}`;
@@ -48,7 +45,7 @@ export function formatChunkPreview(msg: any): string {
 
   if (first.type === 'text' && first.text) {
     const prefix = `${type}: `;
-    const text = truncateToFit(first.text.replace(/\s+/g, ' '), prefix.length + 2);
+    const text = truncateToFit(first.text.replace(/\s+/g, ' '), prefix.length + 2, indent, termWidth);
     // Assistant text messages in white for visibility, others dim
     const textColor = type === 'assistant' ? chalk.white : chalk.dim;
     return `${typeColor(type)}: ${textColor(`"${text}"`)}`;
@@ -56,7 +53,7 @@ export function formatChunkPreview(msg: any): string {
   if (first.type === 'tool_use') {
     const toolName = first.name || 'unknown';
     const prefix = `${type}: ${toolName} `;
-    const params = first.input ? truncateToFit(JSON.stringify(first.input), prefix.length) : '';
+    const params = first.input ? truncateToFit(JSON.stringify(first.input), prefix.length, indent, termWidth) : '';
     return `${typeColor(type)}: ${chalk.blue(toolName)} ${chalk.dim(params)}`;
   }
   if (first.type === 'tool_result') {
@@ -68,7 +65,7 @@ export function formatChunkPreview(msg: any): string {
     }
     if (preview) {
       const prefix = `${type}: tool_result `;
-      return `${typeColor(type)}: ${chalk.yellow('tool_result')} ${chalk.dim(`"${truncateToFit(preview, prefix.length + 2)}"`)}`;
+      return `${typeColor(type)}: ${chalk.yellow('tool_result')} ${chalk.dim(`"${truncateToFit(preview, prefix.length + 2, indent, termWidth)}"`)}`;
     }
     return `${typeColor(type)}: ${chalk.yellow('tool_result')} ${chalk.dim('(ok)')}`;
   }

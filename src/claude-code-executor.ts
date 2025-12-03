@@ -1,4 +1,5 @@
 import { execaNode } from 'execa';
+import { appendFileSync } from 'fs';
 import { v4 as uuidv4 } from 'uuid';
 import chalk from 'chalk';
 import { Task } from '@a2a-js/sdk';
@@ -9,7 +10,7 @@ import {
 } from '@a2a-js/sdk/server';
 import { Kind, Role, TaskState } from './protocol.js';
 import { findClaudePath } from './lib/claude-path.js';
-import { formatChunkPreview } from './lib/format-chunk.js';
+import { formatChunkPreview, getTermWidth, truncateToFit } from './lib/format-chunk.js';
 import { Config } from './config.js';
 
 interface ClaudeMessage {
@@ -139,8 +140,10 @@ export class ClaudeCodeExecutor implements AgentExecutor {
     this.runningProcesses.set(taskId, abortController);
 
     try {
-      const userTextPreview = messageText.substring(0, 60);
-      console.log(`    → Executing: "${userTextPreview}${messageText.length > 60 ? '...' : ''}"`);
+      const termWidth = getTermWidth();
+      const execPrefix = '    → Executing: "';
+      const userTextPreview = truncateToFit(messageText, execPrefix.length + 1, 0, termWidth);
+      console.log(`${execPrefix}${userTextPreview}"`);
 
       const subprocess = execaNode(this.claudePath, args, {
         cwd: this.config.workspace,
@@ -167,8 +170,14 @@ export class ClaudeCodeExecutor implements AgentExecutor {
           try {
             const msg: ClaudeMessage = JSON.parse(line);
 
+            // Log full chunk to file if enabled
+            if (this.config.logPath) {
+              appendFileSync(this.config.logPath, line + '\n');
+            }
+
             // Log each JSON chunk as it arrives
-            console.log(`      < ${formatChunkPreview(msg)}`);
+            const tw = getTermWidth();
+            console.log(`      < ${formatChunkPreview(msg, 8, tw)}`);
 
             // Handle different message types
             if (msg.type === 'user' || msg.type === 'assistant') {
@@ -231,8 +240,10 @@ export class ClaudeCodeExecutor implements AgentExecutor {
       // Send final response as a completed task
       const finalText = accumulatedText || 'No response from Claude Code';
       const oneLine = finalText.replace(/\s+/g, ' ').trim();
-      const responsePreview = oneLine.substring(0, 60);
-      console.log(`    ← Response: "${responsePreview}${oneLine.length > 60 ? '...' : ''}"`);
+      const respPrefix = '    ← Response: "';
+      const respTermWidth = getTermWidth();
+      const responsePreview = truncateToFit(oneLine, respPrefix.length + 1, 0, respTermWidth);
+      console.log(`${respPrefix}${responsePreview}"`);
 
       const responseMessage = {
         kind: Kind.Message,
@@ -285,8 +296,10 @@ export class ClaudeCodeExecutor implements AgentExecutor {
         errorMessage = error.message || 'Unknown error';
       }
 
-      const errorPreview = errorMessage.substring(0, 60);
-      console.log(`    ✗ Error: "${errorPreview}${errorMessage.length > 60 ? '...' : ''}"`);
+      const errPrefix = '    ✗ Error: "';
+      const errTermWidth = getTermWidth();
+      const errorPreview = truncateToFit(errorMessage, errPrefix.length + 1, 0, errTermWidth);
+      console.log(`${errPrefix}${errorPreview}"`);
 
       throw new Error(`Claude Code error: ${errorMessage}`);
     }

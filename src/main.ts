@@ -3,8 +3,19 @@
 // Force colors in non-TTY environments (e.g., container logs)
 process.env.FORCE_COLOR = '1';
 
-import { mkdirSync } from 'fs';
+import { mkdirSync, existsSync, readFileSync } from 'fs';
 import { join } from 'path';
+
+// Count lines in a file, returns null if file doesn't exist
+function countLines(filePath: string): number | null {
+  if (!existsSync(filePath)) return null;
+  try {
+    const content = readFileSync(filePath, 'utf-8');
+    return content.split('\n').length;
+  } catch {
+    return null;
+  }
+}
 import dotenv from 'dotenv';
 import express from 'express';
 import chalk from 'chalk';
@@ -37,11 +48,21 @@ if (!process.env.ANTHROPIC_API_KEY) {
   process.exit(1);
 }
 
-// Load skills from both locations:
-// - User skills: ~/.claude/skills/ (global, mount here for container use)
-// - Project skills: workspace/.claude/skills/ (repo-specific)
-const userSkillsDir = join(process.env.HOME || '/home/ark', '.claude', 'skills');
-const projectSkillsDir = join(config.workspace, '.claude', 'skills');
+// Load Claude config from both locations:
+// - User: ~/.claude/ (global, mount here for container use)
+// - Project: workspace/.claude/ (repo-specific)
+const userClaudeDir = join(process.env.HOME || '/home/ark', '.claude');
+const projectClaudeDir = join(config.workspace, '.claude');
+
+// Check for CLAUDE.md files
+const userClaudeMd = join(userClaudeDir, 'CLAUDE.md');
+const projectClaudeMd = join(projectClaudeDir, 'CLAUDE.md');
+const userClaudeMdLines = countLines(userClaudeMd);
+const projectClaudeMdLines = countLines(projectClaudeMd);
+
+// Load skills
+const userSkillsDir = join(userClaudeDir, 'skills');
+const projectSkillsDir = join(projectClaudeDir, 'skills');
 const userSkills = loadSkills(userSkillsDir, 'user');
 const projectSkills = loadSkills(projectSkillsDir, 'project');
 const skills = [...userSkills, ...projectSkills];
@@ -68,6 +89,15 @@ const server = app.listen(PORT, HOST, () => {
     loadedEnvVars.forEach(v => console.log(`  ${v}`));
   }
   console.log(`Workspace: ${config.workspace}`);
+  if (config.logPath) {
+    console.log(`Log: ${config.logPath}`);
+  }
+  if (userClaudeMdLines !== null) {
+    console.log(`  ~/CLAUDE.md: ${userClaudeMdLines} lines`);
+  }
+  if (projectClaudeMdLines !== null) {
+    console.log(`  .claude/CLAUDE.md: ${projectClaudeMdLines} lines`);
+  }
   if (userSkills.length > 0) {
     console.log('User skills:');
     userSkills.forEach(s => console.log(`  ${s.name}`));

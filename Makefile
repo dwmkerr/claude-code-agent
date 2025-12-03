@@ -32,8 +32,14 @@ docker-build: # Build the Docker image.
 docker-run: docker-build # Build and run the Docker container.
 	docker run --rm -it --init -v $(PWD)/.env:/app/.env:ro -v $(PWD)/workspace:/workspace -p 2222:2222 claude-code-agent
 
+.PHONY: kind-cleanup
+kind-cleanup: # Delete ALL existing Kind clusters to avoid conflicts.
+	@echo "Cleaning up Kind clusters..."
+	@kind get clusters 2>/dev/null | xargs -I {} kind delete cluster --name {} 2>/dev/null || true
+	@echo "Remaining clusters:" && kind get clusters 2>/dev/null || echo "None"
+
 .PHONY: docker-run-ark
-docker-run-ark: docker-build # Run with Ark skills and Docker socket for Kind. See examples/ark/
+docker-run-ark: docker-build kind-cleanup # Run with Ark skills and Docker socket for Kind. See examples/ark/
 	# --user root: Required for Docker socket access. On macOS Docker Desktop,
 	# --group-add doesn't work; on Linux, root avoids needing to detect the
 	# socket's group ID. Kind also requires elevated permissions.
@@ -41,6 +47,7 @@ docker-run-ark: docker-build # Run with Ark skills and Docker socket for Kind. S
 		--user root \
 		-v $(PWD)/.env:/app/.env:ro \
 		-v $(PWD)/workspace:/workspace \
-		-v $(PWD)/examples/ark/skills:/root/.claude/skills:ro \
+		-v $(PWD)/examples/ark/claude:/root/.claude:ro \
 		-v /var/run/docker.sock:/var/run/docker.sock \
+		-e CLAUDE_LOG_PATH=/tmp/claude-code-agent-log.jsonl \
 		-p 2222:2222 claude-code-agent

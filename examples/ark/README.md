@@ -19,17 +19,23 @@ helm install claude-code-agent ./chart \
   --set apiKey=$ANTHROPIC_API_KEY
 ```
 
-## Skills
+## Claude Configuration
 
-This example includes skills in `examples/ark/skills/`:
+This example includes Claude config in `examples/ark/claude/`:
 
-- **ark-setup** - Set up Ark from source with Kind
-- **ark-testing** - Test dashboard UI with Playwright
-- **ark-analysis** - Analyze Ark codebase and issues
+- **CLAUDE.md** - System prompt with critical instructions (e.g., Kind `--internal` flag)
+- **skills/** - Skills for Ark workflows:
+  - **ark-setup** - Set up Ark from source with Kind
+  - **ark-testing** - Test dashboard UI with Playwright
+  - **ark-analysis** - Analyze Ark codebase and issues
 
-## Testing
+The claude folder is copied to `~/.claude/` on startup.
 
-Run the following command to issue the query:
+## Example Queries
+
+Use the `Ark Setup` skill to create a Kubernetes Cluster, install Ark from a pull request branch, validate that all services are running correctly.
+
+Running the Query:
 
 ```bash
 query="Check out https://github.com/mckinsey/agents-at-scale-ark/pull/531 and use the ark-setup skill to install ark and give me the output of 'ark status'"
@@ -55,6 +61,33 @@ curl -N -X POST http://localhost:2222/ \
 }
 EOF
 ```
+
+Snapshot of Claude Code:
+
+![Process Screenshot](./docs/ark-setup-claude-screenshot.png)
+
+Final Result:
+
+```
+## Ark Status Summary
+
+  **Cluster Access:**
+  - ✓ Connected to: kind-ark-cluster (172.18.0.2)
+
+  **Ark Services:**
+  - ✓ ark-tenant: healthy (v0.1.46, deployed)
+  - ✓ ark-api: healthy (v0.1.46, 1/1 replicas ready)
+  - ✓ ark-dashboard: healthy (v0.1.46, 1/1 replicas ready)
+  - ○ ark-mcp: not ready (0/1 replicas ready)
+  - ○ ark-cluster-memory: not ready (0/1 replicas ready)
+
+  **Ark Status:**
+  - ✓ ark-controller: ready (v0.1.46, 1/1 replicas ready)
+  - ✓ Version: up to date (0.1.46)
+
+  Duration: 508s (~8.5 min), Cost: $0.38
+```
+
 
 For analysis, this snippet.
 
@@ -107,4 +140,12 @@ EOF
 
 # Watch query status
 kubectl get query test-query -w
+```
+
+## Debugging
+
+```bash
+# View chunk logs from make docker-run-ark (if CLAUDE_LOG_PATH was set)
+# Log is JSONL format (one JSON object per line)
+docker exec $(docker ps --filter ancestor=claude-code-agent -q) cat /tmp/claude-code-agent-log.txt
 ```

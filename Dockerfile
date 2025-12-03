@@ -16,6 +16,7 @@ RUN apt-get update && apt-get install -y \
     curl \
     docker.io \
     net-tools \
+    procps \
     && rm -rf /var/lib/apt/lists/*
 
 # Install GitHub CLI.
