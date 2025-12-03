@@ -31,9 +31,11 @@ This example includes Claude config in `examples/ark/claude/`:
 
 The claude folder is copied to `~/.claude/` on startup.
 
-## Testing
+## Example Queries
 
-Run the following command to issue the query:
+Use the `Ark Setup` skill to create a Kubernetes Cluster, install Ark from a pull request branch, validate that all services are running correctly.
+
+Running the Query:
 
 ```bash
 query="Check out https://github.com/mckinsey/agents-at-scale-ark/pull/531 and use the ark-setup skill to install ark and give me the output of 'ark status'"
@@ -59,6 +61,33 @@ curl -N -X POST http://localhost:2222/ \
 }
 EOF
 ```
+
+Snapshot of Claude Code:
+
+![Process Screenshot](./docs/ark-setup-claude-screenshot.png)
+
+Final Result:
+
+```
+## Ark Status Summary
+
+  **Cluster Access:**
+  - ✓ Connected to: kind-ark-cluster (172.18.0.2)
+
+  **Ark Services:**
+  - ✓ ark-tenant: healthy (v0.1.46, deployed)
+  - ✓ ark-api: healthy (v0.1.46, 1/1 replicas ready)
+  - ✓ ark-dashboard: healthy (v0.1.46, 1/1 replicas ready)
+  - ○ ark-mcp: not ready (0/1 replicas ready)
+  - ○ ark-cluster-memory: not ready (0/1 replicas ready)
+
+  **Ark Status:**
+  - ✓ ark-controller: ready (v0.1.46, 1/1 replicas ready)
+  - ✓ Version: up to date (0.1.46)
+
+  Duration: 508s (~8.5 min), Cost: $0.38
+```
+
 
 For analysis, this snippet.
 

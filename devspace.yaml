@@ -30,6 +30,7 @@ pipelines:
     create_deployments --all
 
   dev: |-
+    build_images --all
     create_deployments --all
     start_dev --all
 
@@ -65,7 +66,6 @@ deployments:
       values:
         image:
           repository: claude-agent
-          tag: latest
         apiKeySecret: claude-code-secrets
 
 dev:

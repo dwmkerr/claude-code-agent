@@ -17,12 +17,24 @@ Use this skill when:
 
 ## Prerequisites
 
-Before installing Ark, ensure you have:
-
-1. **Kubernetes cluster** - Kind, minikube, or similar
-2. **kubectl** - Kubernetes CLI configured for your cluster
+1. **Docker-in-Docker (DinD)** - Required for Kind to create clusters inside this container
+2. **kubectl** - Kubernetes CLI
 3. **Helm** - For installing Ark components
 4. **Node.js** - For building the ark-cli tool
+
+## Step 0: Verify Docker-in-Docker is available
+
+**CRITICAL: You MUST verify Docker is accessible before attempting to create a Kind cluster.**
+
+```bash
+docker info
+```
+
+**If this command fails, STOP IMMEDIATELY.** Do not attempt to create a Kind cluster. Report to the user:
+
+> "Cannot proceed: Docker is not available. Kind requires Docker-in-Docker (DinD) to create clusters inside this container. The container must be started with the `ark` profile (`devspace dev -p ark`) which adds the DinD sidecar."
+
+If Docker is available, proceed to the next step.
 
 ## Step 1: Clone the Ark repository
 
@@ -42,20 +54,36 @@ git checkout pr-<PR_NUMBER>
 
 ## Step 2: Set up Kubernetes cluster
 
-**CRITICAL: You MUST run `kind export kubeconfig --internal` after creating the cluster. Without this, kubectl will fail with "connection refused" errors.**
+### Step 2a: Clean up existing clusters
+
+**CRITICAL: Always delete existing Kind clusters first to avoid conflicts and resource exhaustion.**
+
+```bash
+# Delete any existing ark-cluster
+kind delete cluster --name ark-cluster 2>/dev/null || true
+
+# Verify no ark-cluster exists
+kind get clusters
+```
+
+### Step 2b: Create cluster and configure kubeconfig
 
 ```bash
 # Create Kind cluster
 kind create cluster --name ark-cluster
 
-# REQUIRED: Export kubeconfig with --internal flag (Docker networking)
-kind export kubeconfig --name ark-cluster --internal
+# REQUIRED: Get the control plane container's IP address
+CONTROL_PLANE_IP=$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ark-cluster-control-plane)
+
+# Export kubeconfig and replace hostname with IP
+mkdir -p ~/.kube
+kind get kubeconfig --name ark-cluster --internal | sed "s/ark-cluster-control-plane/$CONTROL_PLANE_IP/g" > ~/.kube/config
 
 # Verify connection works
 kubectl cluster-info
 ```
 
-**Why `--internal` is required:** This agent runs inside Docker. Without `--internal`, Kind sets the API server to `127.0.0.1` which doesn't work across Docker containers. The `--internal` flag uses Docker DNS names instead.
+**Why IP address is required:** This agent runs inside Docker. The default `127.0.0.1` doesn't work across containers, and the `--internal` hostname may not be resolvable. Using the actual container IP ensures connectivity.
 
 ## Step 3: Build the ark-cli from source
 
@@ -106,6 +134,14 @@ Wait until all pods show as **Running** and services are ready.
 
 ## Troubleshooting
 
+### Docker not available / Kind fails to create cluster
+
+If `docker info` fails or `kind create cluster` fails with Docker errors:
+
+**STOP.** This container does not have Docker-in-Docker (DinD) configured. Report to the user:
+
+> "Cannot create Kind cluster: Docker is not available. The container must be started with the `ark` profile (`devspace dev -p ark`)."
+
 ### Check pod status
 ```bash
 kubectl get pods -A -o wide | grep -E '(ark|cert-manager)'
@@ -119,14 +155,15 @@ kubectl logs -n ark-system deployment/ark-controller
 ```
 
 ### Kubeconfig issues with Kind
-If kubectl/helm can't reach the cluster API server (connection refused to 127.0.0.1):
+If kubectl/helm can't reach the cluster API server (connection refused or hostname not found):
 ```bash
-# Re-export kubeconfig with internal Docker network addresses
-kind export kubeconfig --name ark-cluster --internal
+# Get the control plane IP and reconfigure kubeconfig
+CONTROL_PLANE_IP=$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ark-cluster-control-plane)
+kind get kubeconfig --name ark-cluster --internal | sed "s/ark-cluster-control-plane/$CONTROL_PLANE_IP/g" > ~/.kube/config
 
-# Verify the server address is NOT 127.0.0.1
+# Verify the server address is an IP, not 127.0.0.1 or a hostname
 kubectl config view --minify | grep server
-# Should show: server: https://ark-cluster-control-plane:6443
+# Should show: server: https://172.x.x.x:6443
 ```
 
 ## Working with Ark
