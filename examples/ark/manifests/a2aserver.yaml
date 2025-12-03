@@ -1,0 +1,12 @@
+apiVersion: ark.mckinsey.com/v1prealpha1
+kind: A2AServer
+metadata:
+  name: ark-claude-code-agent
+  annotations:
+    ark.mckinsey.com/dashboard-icon: /icons/claude.png
+spec:
+  address:
+    value: http://host.docker.internal:2222
+  description: Ark Claude Code Agent with setup, analyse, test skills
+  pollInterval: 1m
+  timeout: 10m

@@ -3,6 +3,7 @@
 ## Overall
 
 - [ ] richer examples directory showing how to install / configure
+- [ ] ark screenshot sample via ark cli
 - [ ] show issue https://github.com/mckinsey/agents-at-scale-ark/pull/524 using skills with phoenix
 - [ ] build feature for issue https://github.com/mckinsey/agents-at-scale-ark/issues/530
 

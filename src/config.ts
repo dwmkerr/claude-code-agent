@@ -7,6 +7,7 @@ export interface Config {
   permissionMode: string;
   timeoutSeconds: number;
   logPath: string | null;  // File path for full chunk logs (opt-in via CLAUDE_LOG_PATH)
+  agentName: string;       // Agent name for A2A registration
 }
 
 // Detect if running in a container (Docker/Helm)
@@ -29,5 +30,6 @@ export function loadConfig(): Config {
     permissionMode: process.env.CLAUDE_PERMISSION_MODE || 'acceptEdits',
     timeoutSeconds: parseInt(process.env.CLAUDE_TIMEOUT_SECONDS || '3600', 10),
     logPath: process.env.CLAUDE_LOG_PATH || null,
+    agentName: process.env.CLAUDE_AGENT_NAME || 'claude-code',
   };
 }

@@ -31,11 +31,18 @@ This example includes Claude config in `examples/ark/claude/`:
 
 The claude folder is copied to `~/.claude/` on startup.
 
-## Example Queries
+## Examples
+
+### Setup an entire Ark Cluster running a Pull Request
 
 Use the `Ark Setup` skill to create a Kubernetes Cluster, install Ark from a pull request branch, validate that all services are running correctly.
 
 Running the Query:
+
+```bash
+
+
+TODO can we make this a collapse block call 'Bash'
 
 ```bash
 query="Check out https://github.com/mckinsey/agents-at-scale-ark/pull/531 and use the ark-setup skill to install ark and give me the output of 'ark status'"
