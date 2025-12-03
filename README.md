@@ -138,6 +138,8 @@ The following env vars are supported:
 | `CLAUDE_PERMISSION_MODE` | Permission mode | `acceptEdits` |
 | `CLAUDE_TIMEOUT_SECONDS` | Execution timeout | `3600` |
 | `CLAUDE_CODE_WORKSPACE_DIR` | Working directory | `./workspace` (local) or `/workspace` (docker/helm) |
+| `CLAUDE_AGENT_NAME` | Agent name for A2A registration | `claude-code` |
+| `CLAUDE_LOG_PATH` | File path for JSONL chunk logs | - (disabled) |
 | `FORCE_COLOR` | Enable colors in logs | `0` |
 
 ### Workspace

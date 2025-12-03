@@ -4,11 +4,9 @@ import { Config } from './config.js';
 import { Skill } from './skill-loader.js';
 import pkg from '../package.json' with { type: 'json' };
 
-const AgentId = 'claude-code-agent';
-
-function createAgentCard(skills: Skill[]): AgentCard {
+function createAgentCard(agentName: string, skills: Skill[]): AgentCard {
   return {
-    name: 'Claude Code Agent',
+    name: agentName,
     description: 'Claude Code AI assistant for software engineering tasks',
     url: '', // Will be set dynamically
     provider: {
@@ -47,8 +45,8 @@ export interface A2AAgent {
 
 export function createAgent(config: Config, skills: Skill[] = []): A2AAgent {
   return {
-    id: AgentId,
-    card: createAgentCard(skills),
+    id: config.agentName,
+    card: createAgentCard(config.agentName, skills),
     executor: new ClaudeCodeExecutor(config),
   };
 }
