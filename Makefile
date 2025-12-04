@@ -49,8 +49,10 @@ docker-run-ark: docker-build kind-cleanup # Run with Ark skills and Docker socke
 		--user root \
 		-v $(PWD)/.env:/app/.env:ro \
 		-v $(PWD)/workspace:/workspace \
-		-v $(PWD)/examples/ark/claude:/root/.claude:ro \
+		-v $(PWD)/examples/ark/claude/skills:/home/ark/.claude/skills:ro \
+		-v $(PWD)/examples/ark/claude/CLAUDE.md:/home/ark/.claude/CLAUDE.md:ro \
+		-v $(PWD)/examples/ark/claude.json:/config/claude.json:ro \
 		-v /var/run/docker.sock:/var/run/docker.sock \
 		-e CLAUDE_LOG_PATH=/tmp/claude-code-agent-log.jsonl \
 		-e CLAUDE_AGENT_NAME=ark-claude-code-agent \
-		-p 2222:2222 claude-code-agent
+		-p 2222:2222 claude-code-agent -- --mcp-config /config/claude.json

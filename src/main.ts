@@ -5,6 +5,14 @@ process.env.FORCE_COLOR = '1';
 
 import { mkdirSync, existsSync, readFileSync } from 'fs';
 import { join } from 'path';
+import { Command } from 'commander';
+import dotenv from 'dotenv';
+import express from 'express';
+import chalk from 'chalk';
+import { setupA2ARoutes } from './routes.js';
+import { loadConfig, CliOptions } from './config.js';
+import { loadSkills } from './skill-loader.js';
+import pkg from '../package.json' with { type: 'json' };
 
 // Count lines in a file, returns null if file doesn't exist
 function countLines(filePath: string): number | null {
@@ -16,20 +24,43 @@ function countLines(filePath: string): number | null {
     return null;
   }
 }
-import dotenv from 'dotenv';
-import express from 'express';
-import chalk from 'chalk';
-import { setupA2ARoutes } from './routes.js';
-import { loadConfig } from './config.js';
-import { loadSkills } from './skill-loader.js';
-import pkg from '../package.json' with { type: 'json' };
+
+// Parse CLI arguments
+const program = new Command();
+program
+  .name('claude-code-agent')
+  .description('A2A agent server that wraps Claude Code. Use -- to pass args to Claude.')
+  .version(pkg.version)
+  .option('-p, --port <number>', 'server port', parseInt)
+  .option('-H, --host <string>', 'server host')
+  .option('-w, --workspace <path>', 'workspace directory')
+  .option('--timeout <seconds>', 'execution timeout in seconds', parseInt)
+  .option('--log-path <path>', 'path to write Claude output logs')
+  .option('--agent-name <name>', 'agent name for A2A registration')
+  .allowUnknownOption()
+  .parse(process.argv);
+
+const opts = program.opts();
+
+// Everything after -- is passed through to Claude Code
+const claudeArgs = program.args;
+
+// Map CLI options to config
+const cliOptions: CliOptions = {
+  port: opts.port,
+  host: opts.host,
+  workspace: opts.workspace,
+  timeout: opts.timeout,
+  logPath: opts.logPath,
+  agentName: opts.agentName,
+};
 
 // Load .env file if present
 const dotenvResult = dotenv.config();
 const loadedEnvVars = dotenvResult.parsed ? Object.keys(dotenvResult.parsed) : [];
 
-// Load configuration
-const config = loadConfig();
+// Load configuration (CLI options override env vars)
+const config = loadConfig(cliOptions, claudeArgs);
 
 // Create workspace directory if it doesn't exist
 try {
@@ -38,9 +69,6 @@ try {
   console.error(chalk.red(`error: failed to create workspace directory: ${err.message}`));
   process.exit(1);
 }
-
-const HOST = process.env.HOST || '0.0.0.0';
-const PORT = parseInt(process.env.PORT || '2222', 10);
 
 // Check for required ANTHROPIC_API_KEY
 if (!process.env.ANTHROPIC_API_KEY) {
@@ -77,9 +105,9 @@ app.get('/health', (_req, res) => {
 });
 
 // Setup A2A routes with loaded skills
-setupA2ARoutes(app, HOST, PORT, config, skills);
+setupA2ARoutes(app, config.host, config.port, config, skills);
 
-const server = app.listen(PORT, HOST, () => {
+const server = app.listen(config.port, config.host, () => {
   const apiKey = process.env.ANTHROPIC_API_KEY || '';
   const maskedKey = '*******' + apiKey.slice(-3);
   console.log(`${pkg.name} v${pkg.version}`);
@@ -91,6 +119,9 @@ const server = app.listen(PORT, HOST, () => {
   console.log(`Workspace: ${config.workspace}`);
   if (config.logPath) {
     console.log(`Log: ${config.logPath}`);
+  }
+  if (config.claudeArgs.length > 0) {
+    console.log(`Claude args: ${config.claudeArgs.join(' ')}`);
   }
   if (userClaudeMdLines !== null) {
     console.log(`  ~/CLAUDE.md: ${userClaudeMdLines} lines`);
@@ -106,7 +137,7 @@ const server = app.listen(PORT, HOST, () => {
     console.log('Project skills:');
     projectSkills.forEach(s => console.log(`  ${s.name}`));
   }
-  console.log(`Running on: http://${HOST}:${PORT}`);
+  console.log(`Running on: http://${config.host}:${config.port}`);
 }).on('error', (err) => {
   console.error(chalk.red(`error: ${err.message}`));
   process.exit(1);

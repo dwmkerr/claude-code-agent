@@ -24,30 +24,6 @@ describe('loadConfig', () => {
     expect(config.workspace).toMatch(/workspace$/);
   });
 
-  test('uses CLAUDE_ALLOWED_TOOLS when set', () => {
-    process.env.CLAUDE_ALLOWED_TOOLS = 'Bash,Read';
-    const config = loadConfig();
-    expect(config.allowedTools).toBe('Bash,Read');
-  });
-
-  test('defaults allowedTools', () => {
-    delete process.env.CLAUDE_ALLOWED_TOOLS;
-    const config = loadConfig();
-    expect(config.allowedTools).toBe('Bash,Read,Edit,Write,Grep,Glob,Skill');
-  });
-
-  test('uses CLAUDE_PERMISSION_MODE when set', () => {
-    process.env.CLAUDE_PERMISSION_MODE = 'strict';
-    const config = loadConfig();
-    expect(config.permissionMode).toBe('strict');
-  });
-
-  test('defaults permissionMode to acceptEdits', () => {
-    delete process.env.CLAUDE_PERMISSION_MODE;
-    const config = loadConfig();
-    expect(config.permissionMode).toBe('acceptEdits');
-  });
-
   test('uses CLAUDE_TIMEOUT_SECONDS when set', () => {
     process.env.CLAUDE_TIMEOUT_SECONDS = '600';
     const config = loadConfig();
@@ -70,5 +46,16 @@ describe('loadConfig', () => {
     delete process.env.CLAUDE_LOG_PATH;
     const config = loadConfig();
     expect(config.logPath).toBeNull();
+  });
+
+  test('passes through claudeArgs', () => {
+    const config = loadConfig({}, ['--mcp-config', '/config/claude.json']);
+    expect(config.claudeArgs).toEqual(['--mcp-config', '/config/claude.json']);
+  });
+
+  test('CLI options override env vars', () => {
+    process.env.PORT = '3000';
+    const config = loadConfig({ port: 4000 });
+    expect(config.port).toBe(4000);
   });
 });

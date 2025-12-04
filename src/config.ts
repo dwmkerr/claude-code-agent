@@ -2,12 +2,22 @@ import { existsSync } from 'fs';
 import { resolve } from 'path';
 
 export interface Config {
+  host: string;
+  port: number;
   workspace: string;
-  allowedTools: string;
-  permissionMode: string;
   timeoutSeconds: number;
-  logPath: string | null;  // File path for full chunk logs (opt-in via CLAUDE_LOG_PATH)
-  agentName: string;       // Agent name for A2A registration
+  logPath: string | null;
+  agentName: string;
+  claudeArgs: string[];  // Passthrough args for Claude Code (via --)
+}
+
+export interface CliOptions {
+  port?: number;
+  host?: string;
+  workspace?: string;
+  timeout?: number;
+  logPath?: string;
+  agentName?: string;
 }
 
 // Detect if running in a container (Docker/Helm)
@@ -16,20 +26,24 @@ function isContainer(): boolean {
 }
 
 // Get workspace path with sensible defaults
-function getWorkspace(): string {
+function getWorkspace(cliWorkspace?: string): string {
+  if (cliWorkspace) {
+    return resolve(cliWorkspace);
+  }
   if (process.env.CLAUDE_CODE_WORKSPACE_DIR) {
     return resolve(process.env.CLAUDE_CODE_WORKSPACE_DIR);
   }
   return isContainer() ? '/workspace' : resolve('./workspace');
 }
 
-export function loadConfig(): Config {
+export function loadConfig(cliOptions: CliOptions = {}, claudeArgs: string[] = []): Config {
   return {
-    workspace: getWorkspace(),
-    allowedTools: process.env.CLAUDE_ALLOWED_TOOLS || 'Bash,Read,Edit,Write,Grep,Glob,Skill',
-    permissionMode: process.env.CLAUDE_PERMISSION_MODE || 'acceptEdits',
-    timeoutSeconds: parseInt(process.env.CLAUDE_TIMEOUT_SECONDS || '3600', 10),
-    logPath: process.env.CLAUDE_LOG_PATH || null,
-    agentName: process.env.CLAUDE_AGENT_NAME || 'claude-code',
+    host: cliOptions.host || process.env.HOST || '0.0.0.0',
+    port: cliOptions.port || parseInt(process.env.PORT || '2222', 10),
+    workspace: getWorkspace(cliOptions.workspace),
+    timeoutSeconds: cliOptions.timeout || parseInt(process.env.CLAUDE_TIMEOUT_SECONDS || '3600', 10),
+    logPath: cliOptions.logPath || process.env.CLAUDE_LOG_PATH || null,
+    agentName: cliOptions.agentName || process.env.CLAUDE_AGENT_NAME || 'claude-code',
+    claudeArgs,
   };
 }
