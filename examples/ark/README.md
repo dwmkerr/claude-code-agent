@@ -1,35 +1,39 @@
 # Ark Testing Example
 
-Use the Claude Code Agent for testing [Ark](https://github.com/mckinsey/agents-at-scale-ark) pull requests. The agent creates isolated Kind clusters, deploys Ark, runs tests, and captures screenshots.
+Use the Claude Code Agent for testing [Ark](https://github.com/mckinsey/agents-at-scale-ark) pull requests:
+
+- Creates Kubernetes clusters and can install/setup Ark
+- Able to analyse the codebase in detail using specialised skills
+- Uses MCP servers (Playwright) to test the dashboard UI and take screenshots
 
 ## Setup
 
 The agent needs Docker access to create Kind clusters.
 
 ```bash
-# Run in a container, mount skills, expose 2222.
-make docker-run-ark
+# Run in a container, mount skills, config, mcp, expose 2222.
+make docker-run
 
-# Live reload in a k8s cluster with DinD for Kind.
+# Live reload in a k8s cluster with DinD for Kind (from repo root).
 devspace dev -p ark
-
-# Install with helm.
-helm install claude-code-agent ./chart \
-  -f examples/ark/values-dind.yaml \
-  --set apiKey=$ANTHROPIC_API_KEY
 ```
 
 ## Claude Configuration
 
-This example includes Claude config in `examples/ark/claude/`:
+This example includes Claude config:
 
-- **CLAUDE.md** - System prompt with critical instructions (e.g., Kind `--internal` flag)
-- **skills/** - Skills for Ark workflows:
-  - **ark-setup** - Set up Ark from source with Kind
-  - **ark-testing** - Test dashboard UI with Playwright
-  - **ark-analysis** - Analyze Ark codebase and issues
+```
+mcp-config.json    # MCP servers config (passed via --mcp-config)
+claude/
+  CLAUDE.md        # System prompt with critical instructions
+  skills/          # Skills for Ark workflows:
+    ark-setup/     # Set up Ark from source with Kind
+    ark-testing/   # Test dashboard UI with Playwright
+    ark-analysis/  # Analyze Ark codebase and issues
+```
 
-The claude folder is copied to `~/.claude/` on startup.
+- `mcp-config.json` is mounted to `/config/mcp-config.json` and passed via `--mcp-config`
+- `claude/` contents are mounted to `~/.claude/` (skills and CLAUDE.md)
 
 ## Examples
 
@@ -40,9 +44,12 @@ Use the `Ark Setup` skill to create a Kubernetes Cluster, install Ark from a pul
 Running the Query:
 
 ```bash
+ark query agent/ark-claude-code-agent "Check out https://github.com/mckinsey/agents-at-scale-ark/pull/531 and use the ark-setup skill to install ark and give me the output of 'ark status'"
+```
 
 
-TODO can we make this a collapse block call 'Bash'
+<details>
+<summary>bash</summary>
 
 ```bash
 query="Check out https://github.com/mckinsey/agents-at-scale-ark/pull/531 and use the ark-setup skill to install ark and give me the output of 'ark status'"
@@ -68,6 +75,8 @@ curl -N -X POST http://localhost:2222/ \
 }
 EOF
 ```
+
+</details>
 
 Snapshot of Claude Code:
 
@@ -154,5 +163,8 @@ kubectl get query test-query -w
 ```bash
 # View chunk logs from make docker-run-ark (if CLAUDE_LOG_PATH was set)
 # Log is JSONL format (one JSON object per line)
-docker exec $(docker ps --filter ancestor=claude-code-agent -q) cat /tmp/claude-code-agent-log.txt
+docker exec $(docker ps --filter ancestor=claude-code-agent -q) cat /tmp/claude-code-agent-log.jsonl
+
+# Show MCP config file.
+docker exec $(docker ps --filter ancestor=claude-code-agent -q) cat /config/mcp-config.json
 ```

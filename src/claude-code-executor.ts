@@ -306,20 +306,25 @@ export class ClaudeCodeExecutor implements AgentExecutor {
   }
 
   private buildCommandArgs(messageText: string, sessionId?: string): string[] {
+    // Defaults for headless A2A operation (can be overridden via --)
     const args = [
       '-p',
       messageText,
       '--output-format',
       'stream-json',
       '--verbose',
-      '--allowedTools',
-      this.config.allowedTools,
       '--permission-mode',
-      this.config.permissionMode,
+      'acceptEdits',
     ];
 
     if (sessionId) {
       args.push('--resume', sessionId);
+    }
+
+    // Append passthrough args from CLI (e.g., --mcp-config)
+    // These come last so they can override defaults above
+    if (this.config.claudeArgs.length > 0) {
+      args.push(...this.config.claudeArgs);
     }
 
     return args;

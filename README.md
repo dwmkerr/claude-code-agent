@@ -4,8 +4,8 @@
   <p align="center">
     <a href="#quickstart">Quickstart</a> |
     <a href="#deploy">Deploy</a> |
-    <a href="#configuration">Configuration</a> |
-    <a href="#skills">Skills</a>
+    <a href="#configuration">Configuration (MCP, Skills, etc)</a> |
+    <a href="#examples">Examples</a>
     <a href="#important">Important - Managing Risk</a>
   </p>
   <p align="center">
@@ -103,6 +103,7 @@ kubectl get agent
 # chat in the terminal.
 ark dashboard
 ark query agent/claude-code 'hi'
+```
 
 ## Deploy
 
@@ -129,18 +130,37 @@ devspace dev -p ark  # Ark example with DinD for Kind clusters
 
 ## Configuration
 
-The following env vars are supported:
+### CLI Options
+
+```bash
+claude-code-agent [options] [-- <claude-code-args>]
+
+Options:
+  -p, --port <number>      Server port (default: 2222)
+  -H, --host <string>      Server host (default: 0.0.0.0)
+  -w, --workspace <path>   Workspace directory
+  --timeout <seconds>      Execution timeout (default: 3600)
+  --log-path <path>        Path to write Claude output logs
+  --agent-name <name>      Agent name for A2A registration
+
+# Pass any Claude Code args after --
+claude-code-agent -- --mcp-config /config/mcp.json --allowedTools Bash,Read
+```
+
+### Environment Variables
 
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `ANTHROPIC_API_KEY` | API key (required) | - |
-| `CLAUDE_ALLOWED_TOOLS` | Allowed tools | `Bash,Read,Edit,Write,Grep,Glob` |
-| `CLAUDE_PERMISSION_MODE` | Permission mode | `acceptEdits` |
 | `CLAUDE_TIMEOUT_SECONDS` | Execution timeout | `3600` |
 | `CLAUDE_CODE_WORKSPACE_DIR` | Working directory | `./workspace` (local) or `/workspace` (docker/helm) |
 | `CLAUDE_AGENT_NAME` | Agent name for A2A registration | `claude-code` |
 | `CLAUDE_LOG_PATH` | File path for JSONL chunk logs | - (disabled) |
-| `FORCE_COLOR` | Enable colors in logs | `0` |
+| `HOST` | Server host | `0.0.0.0` |
+| `PORT` | Server port | `2222` |
+| `FORCE_COLOR` | Enable colors in logs | `1` |
+
+CLI options override environment variables.
 
 ### Workspace
 
@@ -164,7 +184,30 @@ Claude code runs in a container, with a number of tools such as `curl`, `wget`, 
 
 If tools require configuration, config files or env vars can be passed to the container. For example, to ensure that the `gh` CLI can be used, pass a `GH_TOKEN` by either setting in `.env` or explicitly pass the environment variable. See the [important note on risk](#important).
 
-**TODO** mcp such as playwright
+### MCP Servers
+
+Configure MCP servers by passing `--mcp-config` via the CLI passthrough:
+
+```bash
+# Docker - mount config and pass to Claude
+docker run -v ./mcp.json:/config/mcp.json:ro \
+  ... claude-code-agent -- --mcp-config /config/mcp.json
+
+# Example mcp.json
+{
+  "mcpServers": {
+    "playwright": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["@playwright/mcp@latest"]
+    }
+  }
+}
+```
+
+> **Note:** Mount the config to a separate location (e.g., `/config/`) rather than directly to `~/.claude.json`. Mounting directly to the Claude home directory can cause permissions issues since Claude Code needs to write to that location.
+
+See [`examples/ark/`](./examples/ark/) for a complete example with MCP servers.
 
 ## Skills
 
@@ -180,14 +223,14 @@ For containers, mount skills to the user directory:
 docker run -v /path/to/skills:/home/ark/.claude/skills:ro ...
 
 # See examples/ark/ for a complete example with skills
-make docker-run-ark
+cd examples/ark && make run
 ```
 
 ## Examples
 
 See [`examples/`](./examples/) for usage examples:
 
-- **[Ark Testing](./examples/ark/)** - Test Ark PRs with Kind clusters, Playwright screenshots
+- **[Ark Testing](./examples/ark/)** - Test Ark PRs with Kind clusters, MCP servers (Playwright), and skills
 
 ## API
 

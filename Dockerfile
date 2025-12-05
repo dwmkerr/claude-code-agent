@@ -49,8 +49,9 @@ RUN npm install -g @anthropic-ai/claude-code
 # Pre-creating ensures ark owns it. Volume mounts overlay subdirectories:
 #   ~/.claude/skills/ - read-only skills mount (:ro)
 #   ~/.claude/todos/  - writable, created by Claude Code at runtime
+#   ~/.claude/debug/  - writable, Claude Code writes debug logs here
 RUN adduser --system --uid 1001 --home /home/ark ark && \
-    mkdir -p /home/ark/.claude && \
+    mkdir -p /home/ark/.claude/debug && \
     chown -R ark:nogroup /home/ark
 
 COPY package*.json ./
@@ -65,4 +66,5 @@ ENV HOME=/home/ark
 
 EXPOSE 2222
 
-CMD ["node", "dist/main.js"]
+ENTRYPOINT ["node", "dist/main.js"]
+CMD []
