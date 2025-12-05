@@ -4,8 +4,8 @@
   <p align="center">
     <a href="#quickstart">Quickstart</a> |
     <a href="#deploy">Deploy</a> |
-    <a href="#configuration">Configuration</a> |
-    <a href="#skills">Skills</a>
+    <a href="#configuration">Configuration (MCP, Skills, etc)</a> |
+    <a href="#examples">Examples</a>
     <a href="#important">Important - Managing Risk</a>
   </p>
   <p align="center">
@@ -103,6 +103,7 @@ kubectl get agent
 # chat in the terminal.
 ark dashboard
 ark query agent/claude-code 'hi'
+```
 
 ## Deploy
 
@@ -197,7 +198,7 @@ docker run -v ./mcp.json:/config/mcp.json:ro \
     "playwright": {
       "type": "stdio",
       "command": "npx",
-      "args": ["@anthropic-ai/mcp-server-playwright"]
+      "args": ["@playwright/mcp@latest"]
     }
   }
 }
@@ -221,14 +222,14 @@ For containers, mount skills to the user directory:
 docker run -v /path/to/skills:/home/ark/.claude/skills:ro ...
 
 # See examples/ark/ for a complete example with skills
-make docker-run-ark
+cd examples/ark && make run
 ```
 
 ## Examples
 
 See [`examples/`](./examples/) for usage examples:
 
-- **[Ark Testing](./examples/ark/)** - Test Ark PRs with Kind clusters, Playwright screenshots
+- **[Ark Testing](./examples/ark/)** - Test Ark PRs with Kind clusters, MCP servers (Playwright), and skills
 
 ## API
 

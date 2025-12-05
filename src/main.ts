@@ -38,6 +38,7 @@ program
   .option('--log-path <path>', 'path to write Claude output logs')
   .option('--agent-name <name>', 'agent name for A2A registration')
   .allowUnknownOption()
+  .allowExcessArguments()
   .parse(process.argv);
 
 const opts = program.opts();

@@ -4,7 +4,7 @@ Use the Claude Code Agent for testing [Ark](https://github.com/mckinsey/agents-a
 
 - Creates Kubernetes clusters and can install/setup Ark
 - Able to analyse the codebase in detail using specialised skills
-- Can test Ark by running the dashboard and driving it with Playwright taking screenshots along the way
+- Uses MCP servers (Playwright) to test the dashboard UI and take screenshots
 
 ## Setup
 
@@ -12,34 +12,28 @@ The agent needs Docker access to create Kind clusters.
 
 ```bash
 # Run in a container, mount skills, config, mcp, expose 2222.
-make docker-run-ark
+make docker-run
 
-# Live reload in a k8s cluster with DinD for Kind.
+# Live reload in a k8s cluster with DinD for Kind (from repo root).
 devspace dev -p ark
-
-# Install with helm.
-# TODO: note that we'd have to copy over the claude/ files.
-helm install claude-code-agent ./chart \
-  -f examples/ark/values-dind.yaml \
-  --set apiKey=$ANTHROPIC_API_KEY
 ```
 
 ## Claude Configuration
 
-This example includes Claude config in `examples/ark/claude/`:
+This example includes Claude config:
 
 ```
-# TODO make up to date
-.claude.json       # MCP config, eg playwright (mounted from ./.claude.json).
-# All the files below mounted from ./claude folder.
-CLAUDE.md          # System prompt additions with critical instructions
-skills/            # Skills for Ark workflows:
-  /ark-setup       # Set up Ark from source with Kind
-  /ark-testing     # Test dashboard UI with Playwright
-  /ark-analysis    # Analyze Ark codebase and issues
+mcp-config.json    # MCP servers config (passed via --mcp-config)
+claude/
+  CLAUDE.md        # System prompt with critical instructions
+  skills/          # Skills for Ark workflows:
+    ark-setup/     # Set up Ark from source with Kind
+    ark-testing/   # Test dashboard UI with Playwright
+    ark-analysis/  # Analyze Ark codebase and issues
 ```
 
-The `claude` folder is copied to `~/.claude/` on startup.
+- `mcp-config.json` is mounted to `/config/mcp-config.json` and passed via `--mcp-config`
+- `claude/` contents are mounted to `~/.claude/` (skills and CLAUDE.md)
 
 ## Examples
 
@@ -54,7 +48,8 @@ ark query agent/ark-claude-code-agent "Check out https://github.com/mckinsey/age
 ```
 
 
-TODO can we make this a collapse block call 'Bash'
+<details>
+<summary>bash</summary>
 
 ```bash
 query="Check out https://github.com/mckinsey/agents-at-scale-ark/pull/531 and use the ark-setup skill to install ark and give me the output of 'ark status'"
@@ -80,6 +75,8 @@ curl -N -X POST http://localhost:2222/ \
 }
 EOF
 ```
+
+</details>
 
 Snapshot of Claude Code:
 
@@ -168,6 +165,6 @@ kubectl get query test-query -w
 # Log is JSONL format (one JSON object per line)
 docker exec $(docker ps --filter ancestor=claude-code-agent -q) cat /tmp/claude-code-agent-log.jsonl
 
-# Show MCP servers.
-docker exec $(docker ps --filter ancestor=claude-code-agent -q) claude mcp list
+# Show MCP config file.
+docker exec $(docker ps --filter ancestor=claude-code-agent -q) cat /config/mcp-config.json
 ```

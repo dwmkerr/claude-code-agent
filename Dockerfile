@@ -66,4 +66,5 @@ ENV HOME=/home/ark
 
 EXPOSE 2222
 
-CMD ["node", "dist/main.js"]
+ENTRYPOINT ["node", "dist/main.js"]
+CMD []
