@@ -158,6 +158,7 @@ claude-code-agent -- --mcp-config /config/mcp.json --allowedTools Bash,Read
 | `CLAUDE_LOG_PATH` | File path for JSONL chunk logs | - (disabled) |
 | `HOST` | Server host | `0.0.0.0` |
 | `PORT` | Server port | `2222` |
+| `FORCE_COLOR` | Enable colors in logs | `1` |
 
 CLI options override environment variables.
 
