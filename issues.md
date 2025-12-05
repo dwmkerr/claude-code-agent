@@ -12,6 +12,10 @@
 - [ ] properly track session id
 - [ ] run one process/pwd per session for slightly better isolation - clear docs that separate containers per session is safer
 
+## Config
+
+- [ ] Append system prompt: https://code.claude.com/docs/en/cli-reference
+
 ## Skills
 
 - [ ] ensure `make docker-run` mounts skills
@@ -42,6 +46,13 @@
 ## Deployment
 
 - [ ] helm chart auto docs
+   Install with helm (from repo root).
+  Note: Skills and MCP config need to be provided via ConfigMap or mounted volume.
+  More deta
+  helm install claude-code-agent ../../chart \
+  -f values-dind.yaml \
+  --set apiKey=$ANTHROPIC_API_KEY
+
 
 ## Testing
 
