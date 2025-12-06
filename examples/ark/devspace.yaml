@@ -8,8 +8,8 @@ vars:
     source: input
     question: "Enter your Anthropic API key:"
   GH_TOKEN:
-    source: env
-    default: ""
+    source: input
+    question: "Enter your GitHub token (or run 'gh auth token'):"
 
 hooks:
   - name: create-configmaps
