@@ -36,7 +36,7 @@ docker-run: docker-build kind-cleanup # Run the agent with Ark skills, MCP confi
 		-v /var/run/docker.sock:/var/run/docker.sock \
 		-e CLAUDE_LOG_PATH=/tmp/claude-code-agent-log.jsonl \
 		-e CLAUDE_AGENT_NAME=ark-claude-code-agent \
-		-p 2222:2222 claude-code-agent -- --mcp-config /config/mcp-config.json
+		-p 2222:2222 claude-code-agent -- --mcp-config /config/mcp-config.json --dangerously-skip-permissions
 
 .PHONY: k8s-configmaps
 k8s-configmaps: # Create ConfigMaps from local files for Claude config.

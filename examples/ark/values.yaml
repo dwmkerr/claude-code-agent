@@ -6,6 +6,8 @@
 claude:
   claudeMdConfigMap: ark-claude-md
   mcpConfigMap: ark-mcp-config
+  args:
+    - "--dangerously-skip-permissions"
   skills:
     - name: ark-setup
       configMap: ark-skill-setup
