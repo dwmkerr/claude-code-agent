@@ -7,6 +7,9 @@ vars:
   ANTHROPIC_API_KEY:
     source: input
     question: "Enter your Anthropic API key:"
+  GH_TOKEN:
+    source: env
+    default: ""
 
 hooks:
   - name: create-configmaps
@@ -45,6 +48,8 @@ deployments:
           repository: dwmkerr/claude-code-agent-base
           tag: latest
         apiKey: ${ANTHROPIC_API_KEY}
+        env:
+          GH_TOKEN: "${GH_TOKEN}"
 
 dev:
   claude-agent:
