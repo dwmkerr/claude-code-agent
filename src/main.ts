@@ -80,7 +80,7 @@ if (!process.env.ANTHROPIC_API_KEY) {
 // Load Claude config from both locations:
 // - User: ~/.claude/ (global, mount here for container use)
 // - Project: workspace/.claude/ (repo-specific)
-const userClaudeDir = join(process.env.HOME || '/home/ark', '.claude');
+const userClaudeDir = join(process.env.HOME || '/home/claude-code-agent', '.claude');
 const projectClaudeDir = join(config.workspace, '.claude');
 
 // Check for CLAUDE.md files

@@ -1,16 +1,6 @@
-FROM node:20-slim AS builder
-
-WORKDIR /app
-
-COPY package*.json tsconfig.json ./
-COPY src/ ./src/
-RUN npm ci
-
 FROM node:20-slim
 
-# Claude Code uses Bash to run commands like curl, git, gh, etc.
-# docker.io provides CLI for Kind when Docker socket is mounted.
-# net-tools provides netstat for debugging.
+# Install system tools: git, curl, docker CLI, networking tools
 RUN apt-get update && apt-get install -y \
     git \
     curl \
@@ -19,7 +9,7 @@ RUN apt-get update && apt-get install -y \
     procps \
     && rm -rf /var/lib/apt/lists/*
 
-# Install GitHub CLI.
+# Install GitHub CLI
 RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
       | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
     && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" \
@@ -27,7 +17,7 @@ RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
     && apt-get update && apt-get install -y gh \
     && rm -rf /var/lib/apt/lists/*
 
-# Install kubectl, helm, devspace, kind - for Ark development.
+# Install kubectl, helm, devspace, kind
 RUN curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/$(dpkg --print-architecture)/kubectl" \
     && install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl \
     && rm kubectl
@@ -40,32 +30,17 @@ RUN curl -fsSL https://github.com/devspace-sh/devspace/releases/latest/download/
 RUN curl -Lo /usr/local/bin/kind https://kind.sigs.k8s.io/dl/v0.25.0/kind-linux-$(dpkg --print-architecture) \
     && chmod +x /usr/local/bin/kind
 
-WORKDIR /app
-
+# Install Claude Code CLI
 RUN npm install -g @anthropic-ai/claude-code
 
-# Create claude-code-agent user with ~/.claude directory pre-created.
-# Claude Code stores state in ~/.claude/ (todos, settings, etc).
-# Pre-creating ensures claude-code-agent owns it. Volume mounts overlay subdirectories:
-#   ~/.claude/skills/ - read-only skills mount (:ro)
-#   ~/.claude/todos/  - writable, created by Claude Code at runtime
-#   ~/.claude/debug/  - writable, Claude Code writes debug logs here
+# Create claude-code-agent user with required directories
 RUN adduser --system --uid 1001 --home /home/claude-code-agent claude-code-agent && \
     mkdir -p /home/claude-code-agent/.claude/debug && \
     mkdir -p /.devspace && \
     chown -R claude-code-agent:nogroup /home/claude-code-agent /.devspace
 
-COPY package*.json ./
-RUN npm ci --omit=dev --ignore-scripts
-
-COPY --from=builder /app/dist ./dist/
-
+WORKDIR /app
 RUN mkdir -p /workspace && chown -R claude-code-agent:nogroup /app /workspace
 
 USER claude-code-agent
 ENV HOME=/home/claude-code-agent
-
-EXPOSE 2222
-
-ENTRYPOINT ["node", "dist/main.js"]
-CMD []

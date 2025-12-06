@@ -15,9 +15,30 @@ apiKeySecret: ""
 # Environment variables
 env:
   CLAUDE_TIMEOUT_SECONDS: "3600"
-  CLAUDE_ALLOWED_TOOLS: "Bash,Read,Edit,Write,Grep,Glob"
-  CLAUDE_PERMISSION_MODE: "acceptEdits"
   FORCE_COLOR: "1"
+
+# Claude Code configuration via ConfigMaps
+# Create ConfigMaps from your files, reference them here:
+#   kubectl create configmap my-claude-md --from-file=CLAUDE.md=./claude/CLAUDE.md
+#   kubectl create configmap my-mcp --from-file=./mcp-config.json
+#   kubectl create configmap my-skill --from-file=./skills/my-skill/
+claude:
+  # ConfigMap containing CLAUDE.md (key must be "CLAUDE.md")
+  claudeMdConfigMap: ""
+
+  # ConfigMap containing mcp-config.json (key must be "mcp-config.json")
+  mcpConfigMap: ""
+
+  # Skills - list of ConfigMap references
+  # Each ConfigMap should contain skill files (created with --from-file=<dir>/)
+  skills: []
+  #   - name: my-skill        # Mounted to ~/.claude/skills/<name>/
+  #     configMap: my-skill   # ConfigMap name
+
+  # Extra CLI args passed to Claude Code (after --)
+  args: []
+  #   - "--model"
+  #   - "opus"
 
 service:
   type: ClusterIP

@@ -220,7 +220,7 @@ For containers, mount skills to the user directory:
 
 ```bash
 # Docker - mount skills to user directory
-docker run -v /path/to/skills:/home/ark/.claude/skills:ro ...
+docker run -v /path/to/skills:/home/claude-code-agent/.claude/skills:ro ...
 
 # See examples/ark/ for a complete example with skills
 cd examples/ark && make run

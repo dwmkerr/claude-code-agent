@@ -31,3 +31,11 @@ docker-build: # Build the Docker image.
 .PHONY: docker-run
 docker-run: docker-build # Build and run the Docker container.
 	docker run --rm -it --init -v $(PWD)/.env:/app/.env:ro -v $(PWD)/workspace:/workspace -p 2222:2222 claude-code-agent
+
+.PHONY: docker-build-base
+docker-build-base: # Build the base image (tools only, no app code).
+	docker build -f Dockerfile.base -t dwmkerr/claude-code-agent-base:latest .
+
+.PHONY: docker-push-base
+docker-push-base: docker-build-base # Build and push base image to Docker Hub.
+	docker push dwmkerr/claude-code-agent-base:latest
