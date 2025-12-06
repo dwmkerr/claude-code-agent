@@ -63,7 +63,7 @@ dev:
       - |
         cd /app
         npm install
-        npm run dev
+        npx tsx watch src/main.ts -- --mcp-config /config/mcp-config.json --dangerously-skip-permissions
     logs:
       lastLines: 50
     sync:
