@@ -1,0 +1,68 @@
+version: v2beta1
+
+# Uses pre-built base image from Docker Hub. If missing, run from repo root:
+#   make docker-push-base
+
+vars:
+  ANTHROPIC_API_KEY:
+    source: input
+    question: "Enter your Anthropic API key:"
+
+hooks:
+  - name: create-configmaps
+    events: ["before:deploy", "before:dev"]
+    command: |-
+      echo "Creating ConfigMaps for Claude config..."
+      kubectl create configmap ark-claude-md --from-file=CLAUDE.md=claude/CLAUDE.md -o yaml --dry-run=client | kubectl apply -f -
+      kubectl create configmap ark-mcp-config --from-file=mcp-config.json -o yaml --dry-run=client | kubectl apply -f -
+      kubectl create configmap ark-skill-setup --from-file=claude/skills/ark-setup/ -o yaml --dry-run=client | kubectl apply -f -
+      kubectl create configmap ark-skill-testing --from-file=claude/skills/ark-testing/ -o yaml --dry-run=client | kubectl apply -f -
+      kubectl create configmap ark-skill-analysis --from-file=claude/skills/ark-analysis/ -o yaml --dry-run=client | kubectl apply -f -
+
+  - name: register-a2aserver
+    events: ["before:deploy", "before:dev"]
+    command: |-
+      echo "Registering A2AServer with Ark..."
+      kubectl apply -f manifests/a2aserver.yaml
+
+pipelines:
+  deploy: |-
+    create_deployments --all
+
+  dev: |-
+    create_deployments --all
+    start_dev --all
+
+deployments:
+  claude-agent:
+    helm:
+      chart:
+        name: ../../chart
+      valuesFiles:
+        - values.yaml
+      values:
+        image:
+          repository: dwmkerr/claude-code-agent-base
+          tag: latest
+        apiKey: ${ANTHROPIC_API_KEY}
+
+dev:
+  claude-agent:
+    labelSelector:
+      app.kubernetes.io/name: claude-code-agent
+    devImage: dwmkerr/claude-code-agent-base:latest
+    container: claude-code-agent
+    command:
+      - sh
+      - -c
+      - |
+        cd /app
+        npm install
+        npm run dev
+    logs:
+      lastLines: 50
+    sync:
+      - path: ../..:/app
+        startContainer: true
+        disableDownload: true
+        uploadExcludeFile: .dockerignore

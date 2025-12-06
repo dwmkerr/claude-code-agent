@@ -1,0 +1,36 @@
+# Ark Example - Helm values
+# Usage:
+#   cd examples/ark
+#   make helm-install   OR   devspace dev
+
+claude:
+  claudeMdConfigMap: ark-claude-md
+  mcpConfigMap: ark-mcp-config
+  skills:
+    - name: ark-setup
+      configMap: ark-skill-setup
+    - name: ark-testing
+      configMap: ark-skill-testing
+    - name: ark-analysis
+      configMap: ark-skill-analysis
+
+env:
+  CLAUDE_AGENT_NAME: ark-claude-code-agent
+  CLAUDE_LOG_PATH: /tmp/claude-code-agent-log.jsonl
+  CLAUDE_TIMEOUT_SECONDS: "3600"
+  FORCE_COLOR: "1"
+  DOCKER_HOST: tcp://localhost:2375
+
+# DinD sidecar for Kind cluster creation
+extraContainers:
+  - name: dind
+    image: docker:dind
+    securityContext:
+      privileged: true
+    volumeMounts:
+      - name: dind-storage
+        mountPath: /var/lib/docker
+
+extraVolumes:
+  - name: dind-storage
+    emptyDir: {}

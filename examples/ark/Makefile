@@ -30,10 +30,31 @@ docker-run: docker-build kind-cleanup # Run the agent with Ark skills, MCP confi
 		--user root \
 		-v $(ROOT_DIR)/.env:/app/.env:ro \
 		-v $(ROOT_DIR)/examples/ark/workspace:/workspace \
-		-v $(ROOT_DIR)/examples/ark/claude/skills:/home/ark/.claude/skills:ro \
-		-v $(ROOT_DIR)/examples/ark/claude/CLAUDE.md:/home/ark/.claude/CLAUDE.md:ro \
+		-v $(ROOT_DIR)/examples/ark/claude/skills:/home/claude-code-agent/.claude/skills:ro \
+		-v $(ROOT_DIR)/examples/ark/claude/CLAUDE.md:/home/claude-code-agent/.claude/CLAUDE.md:ro \
 		-v $(ROOT_DIR)/examples/ark/mcp-config.json:/config/mcp-config.json:ro \
 		-v /var/run/docker.sock:/var/run/docker.sock \
 		-e CLAUDE_LOG_PATH=/tmp/claude-code-agent-log.jsonl \
 		-e CLAUDE_AGENT_NAME=ark-claude-code-agent \
 		-p 2222:2222 claude-code-agent -- --mcp-config /config/mcp-config.json
+
+.PHONY: k8s-configmaps
+k8s-configmaps: # Create ConfigMaps from local files for Claude config.
+	kubectl create configmap ark-claude-md --from-file=CLAUDE.md=claude/CLAUDE.md -o yaml --dry-run=client | kubectl apply -f -
+	kubectl create configmap ark-mcp-config --from-file=mcp-config.json -o yaml --dry-run=client | kubectl apply -f -
+	kubectl create configmap ark-skill-setup --from-file=claude/skills/ark-setup/ -o yaml --dry-run=client | kubectl apply -f -
+	kubectl create configmap ark-skill-testing --from-file=claude/skills/ark-testing/ -o yaml --dry-run=client | kubectl apply -f -
+	kubectl create configmap ark-skill-analysis --from-file=claude/skills/ark-analysis/ -o yaml --dry-run=client | kubectl apply -f -
+
+.PHONY: helm-install
+helm-install: k8s-configmaps # Deploy to Kubernetes with Helm.
+	# Register A2AServer with Ark
+	kubectl apply -f manifests/a2aserver.yaml
+	# Install/upgrade Helm chart
+	helm upgrade --install ark-agent $(ROOT_DIR)/chart -f values.yaml --set apiKey=$(ANTHROPIC_API_KEY)
+
+.PHONY: helm-uninstall
+helm-uninstall: # Remove Helm deployment and ConfigMaps.
+	helm uninstall ark-agent || true
+	kubectl delete configmap ark-claude-md ark-mcp-config ark-skill-setup ark-skill-testing ark-skill-analysis || true
+	kubectl delete -f manifests/a2aserver.yaml || true
