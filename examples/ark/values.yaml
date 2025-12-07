@@ -24,11 +24,16 @@ env:
   DOCKER_HOST: tcp://localhost:2375
 
 # DinD sidecar for Kind cluster creation
+# DOCKER_TLS_CERTDIR="" disables TLS so DinD listens on port 2375 (non-TLS)
+# instead of 2376 (TLS). Required for DOCKER_HOST=tcp://localhost:2375 to work.
 extraContainers:
   - name: dind
     image: docker:dind
     securityContext:
       privileged: true
+    env:
+      - name: DOCKER_TLS_CERTDIR
+        value: ""
     volumeMounts:
       - name: dind-storage
         mountPath: /var/lib/docker
