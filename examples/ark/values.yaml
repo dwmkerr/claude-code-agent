@@ -1,0 +1,43 @@
+# Ark Example - Helm values
+# Usage:
+#   cd examples/ark
+#   make helm-install   OR   devspace dev
+
+claude:
+  claudeMdConfigMap: ark-claude-md
+  mcpConfigMap: ark-mcp-config
+  args:
+    - "--dangerously-skip-permissions"
+  skills:
+    - name: ark-setup
+      configMap: ark-skill-setup
+    - name: ark-testing
+      configMap: ark-skill-testing
+    - name: ark-analysis
+      configMap: ark-skill-analysis
+
+env:
+  CLAUDE_AGENT_NAME: ark-claude-code-agent
+  CLAUDE_LOG_PATH: /tmp/claude-code-agent-log.jsonl
+  CLAUDE_TIMEOUT_SECONDS: "3600"
+  FORCE_COLOR: "1"
+  DOCKER_HOST: tcp://localhost:2375
+
+# DinD sidecar for Kind cluster creation
+# DOCKER_TLS_CERTDIR="" disables TLS so DinD listens on port 2375 (non-TLS)
+# instead of 2376 (TLS). Required for DOCKER_HOST=tcp://localhost:2375 to work.
+extraContainers:
+  - name: dind
+    image: docker:dind
+    securityContext:
+      privileged: true
+    env:
+      - name: DOCKER_TLS_CERTDIR
+        value: ""
+    volumeMounts:
+      - name: dind-storage
+        mountPath: /var/lib/docker
+
+extraVolumes:
+  - name: dind-storage
+    emptyDir: {}

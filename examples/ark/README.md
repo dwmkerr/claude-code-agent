@@ -6,16 +6,33 @@ Use the Claude Code Agent for testing [Ark](https://github.com/mckinsey/agents-a
 - Able to analyse the codebase in detail using specialised skills
 - Uses MCP servers (Playwright) to test the dashboard UI and take screenshots
 
+![Screenshot of Claude Code Agent for Ark](./docs/devspace-screenshot.png)
+
 ## Setup
 
-The agent needs Docker access to create Kind clusters.
+### Docker (local development)
 
 ```bash
-# Run in a container, mount skills, config, mcp, expose 2222.
+# Run in a container with skills, MCP config, expose 2222.
 make docker-run
+```
 
-# Live reload in a k8s cluster with DinD for Kind (from repo root).
-devspace dev -p ark
+### Kubernetes (Helm)
+
+```bash
+# Deploy to Kubernetes (creates ConfigMaps from local files)
+export ANTHROPIC_API_KEY="sk-..."
+make helm-install
+
+# Remove deployment
+make helm-uninstall
+```
+
+### DevSpace (live reload in cluster)
+
+```bash
+cd examples/ark
+devspace dev
 ```
 
 ## Claude Configuration
@@ -30,10 +47,11 @@ claude/
     ark-setup/     # Set up Ark from source with Kind
     ark-testing/   # Test dashboard UI with Playwright
     ark-analysis/  # Analyze Ark codebase and issues
+values.yaml        # Helm values (references ConfigMaps created from above)
 ```
 
-- `mcp-config.json` is mounted to `/config/mcp-config.json` and passed via `--mcp-config`
-- `claude/` contents are mounted to `~/.claude/` (skills and CLAUDE.md)
+- **Docker**: Files mounted directly into container
+- **Helm**: `make helm-install` creates ConfigMaps from files, `values.yaml` references them
 
 ## Examples
 
