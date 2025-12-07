@@ -71,3 +71,5 @@ dev:
         startContainer: true
         disableDownload: true
         uploadExcludeFile: .dockerignore
+      - path: ./workspace:/workspace
+        disableDownload: false
