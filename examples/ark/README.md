@@ -6,6 +6,8 @@ Use the Claude Code Agent for testing [Ark](https://github.com/mckinsey/agents-a
 - Able to analyse the codebase in detail using specialised skills
 - Uses MCP servers (Playwright) to test the dashboard UI and take screenshots
 
+![Screenshot of Claude Code Agent for Ark](./docs/devspace-screenshot.png)
+
 ## Setup
 
 ### Docker (local development)
