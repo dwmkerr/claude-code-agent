@@ -17,6 +17,10 @@
           "type": "yaml",
           "path": "chart/Chart.yaml",
           "jsonpath": "$.appVersion"
+        },
+        {
+          "type": "generic",
+          "path": "Dockerfile"
         }
       ]
     }

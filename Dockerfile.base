@@ -1,13 +1,23 @@
 FROM node:20-slim
 
-# Install system tools: git, curl, docker CLI, networking tools
+# Install system tools: git, curl, networking tools
 RUN apt-get update && apt-get install -y \
     git \
     curl \
-    docker.io \
     net-tools \
     procps \
+    ca-certificates \
+    gnupg \
     && rm -rf /var/lib/apt/lists/*
+
+# Install Docker CLI from official Docker repo (newer than docker.io package)
+RUN install -m 0755 -d /etc/apt/keyrings && \
+    curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc && \
+    chmod a+r /etc/apt/keyrings/docker.asc && \
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian bookworm stable" \
+      > /etc/apt/sources.list.d/docker.list && \
+    apt-get update && apt-get install -y docker-ce-cli && \
+    rm -rf /var/lib/apt/lists/*
 
 # Install GitHub CLI
 RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
@@ -32,6 +42,14 @@ RUN curl -Lo /usr/local/bin/kind https://kind.sigs.k8s.io/dl/v0.25.0/kind-linux-
 
 # Install Claude Code CLI
 RUN npm install -g @anthropic-ai/claude-code
+
+# Pre-install Playwright system dependencies and Chromium browser as root.
+# Chrome is not available for Linux ARM64, so we use Chromium which has cross-platform support.
+RUN npx playwright install-deps chromium && \
+    npx playwright install chromium
+
+# Pre-cache Playwright MCP server
+RUN npx @playwright/mcp@latest --help || true
 
 # Create claude-code-agent user with required directories
 RUN adduser --system --uid 1001 --home /home/claude-code-agent claude-code-agent && \
