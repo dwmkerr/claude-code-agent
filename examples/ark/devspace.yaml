@@ -46,7 +46,7 @@ deployments:
       values:
         image:
           repository: dwmkerr/claude-code-agent-base
-          tag: latest
+          tag: 0.1.1-rc6
         apiKey: ${ANTHROPIC_API_KEY}
         env:
           GH_TOKEN: "${GH_TOKEN}"
@@ -55,7 +55,7 @@ dev:
   claude-agent:
     labelSelector:
       app.kubernetes.io/name: claude-code-agent
-    devImage: dwmkerr/claude-code-agent-base:latest
+    devImage: dwmkerr/claude-code-agent-base:0.1.1-rc6
     container: claude-code-agent
     command:
       - sh

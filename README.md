@@ -249,6 +249,18 @@ npm test         # Run tests
 npm run build    # Build for production
 ```
 
+### Docker Images
+
+Releases push to GHCR (`ghcr.io/dwmkerr/claude-code-agent`). For local development, push release candidates to Docker Hub:
+
+```bash
+# Build and push base image RC
+docker build -t dwmkerr/claude-code-agent-base:0.1.2-rc1 -f Dockerfile.base .
+docker push dwmkerr/claude-code-agent-base:0.1.2-rc1
+
+# Update Dockerfile and devspace.yaml to use the RC tag, then iterate
+```
+
 ### Testing with Minikube
 
 ```bash
