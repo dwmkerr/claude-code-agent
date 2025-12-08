@@ -6,7 +6,7 @@ COPY package*.json tsconfig.json ./
 COPY src/ ./src/
 RUN npm ci
 
-FROM ghcr.io/dwmkerr/claude-code-agent-base:0.1.1 # x-release-please-version
+FROM ghcr.io/dwmkerr/claude-code-agent-base:0.1.2 # x-release-please-version
 
 WORKDIR /app
 
