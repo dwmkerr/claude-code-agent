@@ -73,7 +73,20 @@ jobs:
           VERSION=${{ needs.release.outputs.tag }}
           echo "version=${VERSION#v}" >> $GITHUB_OUTPUT
 
-      - name: Build and push
+      - name: Build and push base image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile.base
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}-base:${{ steps.version.outputs.version }}
+            ghcr.io/${{ github.repository }}-base:latest
+          cache-from: type=gha,scope=base
+          cache-to: type=gha,mode=max,scope=base
+
+      - name: Build and push main image
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -82,8 +95,8 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository }}:${{ steps.version.outputs.version }}
             ghcr.io/${{ github.repository }}:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=main
+          cache-to: type=gha,mode=max,scope=main
 
   publish-helm:
     needs: [release]
