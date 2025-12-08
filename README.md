@@ -10,7 +10,8 @@
   </p>
   <p align="center">
     <a href="https://github.com/dwmkerr/claude-code-agent/actions/workflows/cicd.yaml"><img src="https://github.com/dwmkerr/claude-code-agent/actions/workflows/cicd.yaml/badge.svg" alt="cicd"></a>
-    <a href="https://www.npmjs.com/package/@dwmkerr/claude-code-agent"><img src="https://img.shields.io/npm/v/%40dwmkerr/claude-code-agent" alt="npm"></a>
+    <a href="https://www.npmjs.com/package/@dwmkerr/claude-code-agent"><img src="https://img.shields.io/npm/v/%40dwmkerr%2Fclaude-code-agent" alt="npm"></a>
+    <a href="https://github.com/dwmkerr/claude-code-agent/pkgs/container/claude-code-agent"><img src="https://img.shields.io/badge/ghcr.io-claude--code--agent-blue?logo=docker" alt="docker"></a>
     <a href="https://codecov.io/gh/dwmkerr/claude-code-agent"><img src="https://codecov.io/gh/dwmkerr/claude-code-agent/graph/badge.svg" alt="codecov"></a>
   </p>
 </p>
