@@ -4,7 +4,7 @@
 #   make helm-install   OR   devspace dev
 
 claude:
-  claudeMdConfigMap: ark-claude-md
+  claudeDefaultsConfigMap: ark-claude-defaults
   mcpConfigMap: ark-mcp-config
   args:
     - "--dangerously-skip-permissions"
@@ -22,6 +22,13 @@ env:
   CLAUDE_TIMEOUT_SECONDS: "3600"
   FORCE_COLOR: "1"
   DOCKER_HOST: tcp://localhost:2375
+  # OpenTelemetry - send metrics/traces to Phoenix
+  CLAUDE_CODE_ENABLE_TELEMETRY: "1"
+  OTEL_SERVICE_NAME: claude-code-agent
+  OTEL_METRICS_EXPORTER: otlp
+  OTEL_LOGS_EXPORTER: otlp
+  OTEL_EXPORTER_OTLP_PROTOCOL: grpc
+  OTEL_EXPORTER_OTLP_ENDPOINT: phoenix-svc.phoenix.svc.cluster.local:4317
 
 # DinD sidecar for Kind cluster creation
 # DOCKER_TLS_CERTDIR="" disables TLS so DinD listens on port 2375 (non-TLS)

@@ -20,11 +20,16 @@ devspace dev
 
 ## Examples
 
+Quickly check on skills and agents:
+
+```bash
+ark query agent/ark-claude-code-agent "Tell me what skills and agents you have"
+```
+
 Setup Ark from a PR and show status:
 
 ```bash
-ark query agent/ark-claude-code-agent \
-  'Checkout https://github.com/mckinsey/agents-at-scale-ark/pull/531, use ark-setup skill to install and show ark status'
+ark query agent/ark-claude-code-agent "Please checkout https://github.com/mckinsey/agents-at-scale-ark/pull/631 check this PR out use the ark setup skill to setup up ark and the ark dashboard testing skill to open the ark dashboard and take screenshots of the changed content and add them to the PR with review comments use the github attach images skill to attach these images to a comment."
 ```
 
 Screenshot dashboard changes before/after a PR:

@@ -61,23 +61,17 @@ spec:
             httpGet:
               path: /health
               port: http
-          {{- if or .Values.claude.claudeMdConfigMap .Values.claude.mcpConfigMap .Values.claude.skills .Values.extraVolumeMounts }}
+          {{- if or .Values.claude.claudeDefaultsConfigMap .Values.claude.mcpConfigMap .Values.extraVolumeMounts }}
           volumeMounts:
-            {{- if .Values.claude.claudeMdConfigMap }}
-            - name: claude-md
-              mountPath: /home/claude-code-agent/.claude/CLAUDE.md
-              subPath: CLAUDE.md
+            {{- if .Values.claude.claudeDefaultsConfigMap }}
+            - name: claude-defaults
+              mountPath: /home/claude-code-agent/.claude-defaults
               readOnly: true
             {{- end }}
             {{- if .Values.claude.mcpConfigMap }}
             - name: mcp-config
               mountPath: /config/mcp-config.json
               subPath: mcp-config.json
-              readOnly: true
-            {{- end }}
-            {{- range .Values.claude.skills }}
-            - name: skill-{{ .name }}
-              mountPath: /home/claude-code-agent/.claude/skills/{{ .name }}
               readOnly: true
             {{- end }}
             {{- with .Values.extraVolumeMounts }}
@@ -87,22 +81,17 @@ spec:
       {{- with .Values.extraContainers }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- if or .Values.claude.claudeMdConfigMap .Values.claude.mcpConfigMap .Values.claude.skills .Values.extraVolumes }}
+      {{- if or .Values.claude.claudeDefaultsConfigMap .Values.claude.mcpConfigMap .Values.extraVolumes }}
       volumes:
-        {{- if .Values.claude.claudeMdConfigMap }}
-        - name: claude-md
+        {{- if .Values.claude.claudeDefaultsConfigMap }}
+        - name: claude-defaults
           configMap:
-            name: {{ .Values.claude.claudeMdConfigMap }}
+            name: {{ .Values.claude.claudeDefaultsConfigMap }}
         {{- end }}
         {{- if .Values.claude.mcpConfigMap }}
         - name: mcp-config
           configMap:
             name: {{ .Values.claude.mcpConfigMap }}
-        {{- end }}
-        {{- range .Values.claude.skills }}
-        - name: skill-{{ .name }}
-          configMap:
-            name: {{ .configMap }}
         {{- end }}
         {{- with .Values.extraVolumes }}
         {{- toYaml . | nindent 8 }}
