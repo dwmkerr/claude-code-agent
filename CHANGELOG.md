@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.3](https://github.com/dwmkerr/claude-code-agent/compare/v0.1.2...v0.1.3) (2025-12-22)
+
+
+### Features
+
+* add --claude-defaults-dir option for skills and agent config ([#13](https://github.com/dwmkerr/claude-code-agent/issues/13)) ([e157e30](https://github.com/dwmkerr/claude-code-agent/commit/e157e307ab4d29d05f192f2cb4e230b62e53b10d))
+
 ## [0.1.2](https://github.com/dwmkerr/claude-code-agent/compare/v0.1.1...v0.1.2) (2025-12-08)
 
 
