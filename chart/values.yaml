@@ -12,28 +12,28 @@ fullnameOverride: ""
 apiKey: ""
 apiKeySecret: ""
 
-# Environment variables
+# Environment variables (merged with custom values)
 env:
   CLAUDE_TIMEOUT_SECONDS: "3600"
   FORCE_COLOR: "1"
+  # OpenTelemetry - uncomment or set in custom values to enable
+  # CLAUDE_CODE_ENABLE_TELEMETRY: "1"
+  # OTEL_METRICS_EXPORTER: "otlp"
+  # OTEL_LOGS_EXPORTER: "otlp"
+  # OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
+  # OTEL_EXPORTER_OTLP_ENDPOINT: "phoenix-svc.phoenix.svc.cluster.local:4317"
 
 # Claude Code configuration via ConfigMaps
-# Create ConfigMaps from your files, reference them here:
-#   kubectl create configmap my-claude-md --from-file=CLAUDE.md=./claude/CLAUDE.md
-#   kubectl create configmap my-mcp --from-file=./mcp-config.json
-#   kubectl create configmap my-skill --from-file=./skills/my-skill/
+#
+# Create from a directory: kubectl create configmap my-defaults --from-file=./claude-defaults/
+# This mounts to ~/.claude-defaults/ and copies to ~/.claude/ on startup
 claude:
-  # ConfigMap containing CLAUDE.md (key must be "CLAUDE.md")
-  claudeMdConfigMap: ""
+  # ConfigMap containing claude-defaults files (mounted to ~/.claude-defaults/)
+  # Use this for CLAUDE.md, settings.json, skills/, and agents/
+  claudeDefaultsConfigMap: ""
 
   # ConfigMap containing mcp-config.json (key must be "mcp-config.json")
   mcpConfigMap: ""
-
-  # Skills - list of ConfigMap references
-  # Each ConfigMap should contain skill files (created with --from-file=<dir>/)
-  skills: []
-  #   - name: my-skill        # Mounted to ~/.claude/skills/<name>/
-  #     configMap: my-skill   # ConfigMap name
 
   # Extra CLI args passed to Claude Code (after --)
   args: []

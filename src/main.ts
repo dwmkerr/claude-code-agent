@@ -3,8 +3,9 @@
 // Force colors in non-TTY environments (e.g., container logs)
 process.env.FORCE_COLOR = '1';
 
-import { mkdirSync, existsSync, readFileSync } from 'fs';
+import { mkdirSync, existsSync, readFileSync, cpSync, readdirSync } from 'fs';
 import { join } from 'path';
+import { homedir } from 'os';
 import { Command } from 'commander';
 import dotenv from 'dotenv';
 import express from 'express';
@@ -25,6 +26,22 @@ function countLines(filePath: string): number | null {
   }
 }
 
+// Load agents from a directory (markdown files with frontmatter)
+function loadAgents(agentsDir: string): string[] {
+  if (!existsSync(agentsDir)) return [];
+  try {
+    return readdirSync(agentsDir)
+      .filter(f => f.endsWith('.md'))
+      .map(f => {
+        const content = readFileSync(join(agentsDir, f), 'utf-8');
+        const nameMatch = content.match(/^name:\s*(.+)$/m);
+        return nameMatch ? nameMatch[1].trim() : f.replace('.md', '');
+      });
+  } catch {
+    return [];
+  }
+}
+
 // Parse CLI arguments
 const program = new Command();
 program
@@ -37,6 +54,7 @@ program
   .option('--timeout <seconds>', 'execution timeout in seconds', parseInt)
   .option('--log-path <path>', 'path to write Claude output logs')
   .option('--agent-name <name>', 'agent name for A2A registration')
+  .option('--claude-defaults-dir <path>', 'copy contents to ~/.claude on startup')
   .allowUnknownOption()
   .allowExcessArguments()
   .parse(process.argv);
@@ -63,6 +81,20 @@ const loadedEnvVars = dotenvResult.parsed ? Object.keys(dotenvResult.parsed) : [
 // Load configuration (CLI options override env vars)
 const config = loadConfig(cliOptions, claudeArgs);
 
+// Copy claude-defaults to ~/.claude if specified
+const claudeDefaultsDir = opts.claudeDefaultsDir;
+const userClaudeDir = join(homedir(), '.claude');
+let copiedDefaults: string[] = [];
+if (claudeDefaultsDir && existsSync(claudeDefaultsDir)) {
+  try {
+    mkdirSync(userClaudeDir, { recursive: true });
+    cpSync(claudeDefaultsDir, userClaudeDir, { recursive: true });
+    copiedDefaults = readdirSync(claudeDefaultsDir);
+  } catch (err: any) {
+    console.error(chalk.yellow(`warning: failed to copy claude-defaults: ${err.message}`));
+  }
+}
+
 // Create workspace directory if it doesn't exist
 try {
   mkdirSync(config.workspace, { recursive: true });
@@ -80,7 +112,6 @@ if (!process.env.ANTHROPIC_API_KEY) {
 // Load Claude config from both locations:
 // - User: ~/.claude/ (global, mount here for container use)
 // - Project: workspace/.claude/ (repo-specific)
-const userClaudeDir = join(process.env.HOME || '/home/claude-code-agent', '.claude');
 const projectClaudeDir = join(config.workspace, '.claude');
 
 // Check for CLAUDE.md files
@@ -95,6 +126,12 @@ const projectSkillsDir = join(projectClaudeDir, 'skills');
 const userSkills = loadSkills(userSkillsDir, 'user');
 const projectSkills = loadSkills(projectSkillsDir, 'project');
 const skills = [...userSkills, ...projectSkills];
+
+// Load agents
+const userAgentsDir = join(userClaudeDir, 'agents');
+const projectAgentsDir = join(projectClaudeDir, 'agents');
+const userAgents = loadAgents(userAgentsDir);
+const projectAgents = loadAgents(projectAgentsDir);
 
 const app = express();
 
@@ -117,6 +154,10 @@ const server = app.listen(config.port, config.host, () => {
     console.log('Loaded from .env:');
     loadedEnvVars.forEach(v => console.log(`  ${v}`));
   }
+  if (copiedDefaults.length > 0) {
+    console.log(`Claude defaults: ${claudeDefaultsDir}`);
+    copiedDefaults.forEach(f => console.log(`  ${f}`));
+  }
   console.log(`Workspace: ${config.workspace}`);
   if (config.logPath) {
     console.log(`Log: ${config.logPath}`);
@@ -137,6 +178,22 @@ const server = app.listen(config.port, config.host, () => {
   if (projectSkills.length > 0) {
     console.log('Project skills:');
     projectSkills.forEach(s => console.log(`  ${s.name}`));
+  }
+  if (userAgents.length > 0) {
+    console.log('User agents:');
+    userAgents.forEach(a => console.log(`  ${a}`));
+  }
+  if (projectAgents.length > 0) {
+    console.log('Project agents:');
+    projectAgents.forEach(a => console.log(`  ${a}`));
+  }
+  // Show OTEL config if telemetry is enabled
+  if (process.env.CLAUDE_CODE_ENABLE_TELEMETRY === '1') {
+    console.log('OpenTelemetry:');
+    console.log(`  Endpoint: ${process.env.OTEL_EXPORTER_OTLP_ENDPOINT || '(not set)'}`);
+    console.log(`  Protocol: ${process.env.OTEL_EXPORTER_OTLP_PROTOCOL || '(not set)'}`);
+    console.log(`  Metrics exporter: ${process.env.OTEL_METRICS_EXPORTER || '(not set)'}`);
+    console.log(`  Logs exporter: ${process.env.OTEL_LOGS_EXPORTER || '(not set)'}`);
   }
   console.log(`Running on: http://${config.host}:${config.port}`);
 }).on('error', (err) => {

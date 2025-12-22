@@ -68,7 +68,7 @@ curl -N -X POST http://localhost:2222/ \
       "messageId": "1",
       "contextId": "ctx-1",
       "role": "user",
-      "parts": [{"kind": "text", "text": "Tell me what skills you have loaded"}]
+      "parts": [{"kind": "text", "text": "Tell me what skills you have loaded."}]
     }
   },
   "id": 1
@@ -209,6 +209,20 @@ docker run -v ./mcp.json:/config/mcp.json:ro \
 > **Note:** Mount the config to a separate location (e.g., `/config/`) rather than directly to `~/.claude.json`. Mounting directly to the Claude home directory can cause permissions issues since Claude Code needs to write to that location.
 
 See [`examples/ark/`](./examples/ark/) for a complete example with MCP servers.
+
+### Claude Configuration
+
+Optionally mount config files to `/home/claude-code-agent/.claude-defaults/`:
+
+```
+.claude-defaults/    # Will be copied to ~/.claude on startup
+├── settings.json    # Settings, plugins, MCP servers
+├── CLAUDE.md        # Instructions
+├── commands/        # Custom slash commands
+└── skills/          # User skills (see Skills section below)
+```
+
+Claude Code writes to `~/.claude/` during operation, so direct mounts can fail due to permissions or corrupt your local files. The `claude-defaults` directory provides a safer approach - files are copied on startup.
 
 ## Skills
 

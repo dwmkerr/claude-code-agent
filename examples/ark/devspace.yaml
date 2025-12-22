@@ -16,17 +16,7 @@ hooks:
     events: ["before:deploy", "before:dev"]
     command: |-
       echo "Creating ConfigMaps for Claude config..."
-      kubectl create configmap ark-claude-md --from-file=CLAUDE.md=claude/CLAUDE.md -o yaml --dry-run=client | kubectl apply -f -
       kubectl create configmap ark-mcp-config --from-file=mcp-config.json -o yaml --dry-run=client | kubectl apply -f -
-      kubectl create configmap ark-skill-setup --from-file=claude/skills/ark-setup/ -o yaml --dry-run=client | kubectl apply -f -
-      kubectl create configmap ark-skill-testing --from-file=claude/skills/ark-testing/ -o yaml --dry-run=client | kubectl apply -f -
-      kubectl create configmap ark-skill-analysis --from-file=claude/skills/ark-analysis/ -o yaml --dry-run=client | kubectl apply -f -
-
-  - name: register-a2aserver
-    events: ["before:deploy", "before:dev"]
-    command: |-
-      echo "Registering A2AServer with Ark..."
-      kubectl apply -f manifests/a2aserver.yaml
 
 pipelines:
   deploy: |-
@@ -50,6 +40,10 @@ deployments:
         apiKey: ${ANTHROPIC_API_KEY}
         env:
           GH_TOKEN: "${GH_TOKEN}"
+        # Override: don't use ConfigMaps in dev mode, devspace syncs files directly
+        claude:
+          claudeDefaultsConfigMap: ""
+          skills: []
 
 dev:
   claude-agent:
@@ -63,7 +57,7 @@ dev:
       - |
         cd /app
         npm install
-        npx tsx watch src/main.ts -- --mcp-config /config/mcp-config.json --dangerously-skip-permissions
+        npx tsx watch src/main.ts --claude-defaults-dir /home/claude-code-agent/.claude-defaults -- --mcp-config /config/mcp-config.json --dangerously-skip-permissions
     logs:
       lastLines: 50
     sync:
@@ -71,5 +65,15 @@ dev:
         startContainer: true
         disableDownload: true
         uploadExcludeFile: .dockerignore
+      # Sync workspace bidirectionally - screenshots and files sync back to local
       - path: ./workspace:/workspace
         disableDownload: false
+        excludePaths:
+          - "**/.git"
+          - "**/node_modules"
+          - "**/.devspace"
+          - "**/dist"
+          - "**/__pycache__"
+      # Sync claude-defaults (CLAUDE.md, skills) - copied to ~/.claude/ on startup
+      - path: ./claude-defaults:/home/claude-code-agent/.claude-defaults
+        disableDownload: true
