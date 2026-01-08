@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.3](https://github.com/dwmkerr/claude-code-agent/compare/v0.1.2...v0.1.3) (2026-01-08)
+
+
+### Features
+
+* add --claude-defaults-dir option for skills and agent config ([#13](https://github.com/dwmkerr/claude-code-agent/issues/13)) ([e157e30](https://github.com/dwmkerr/claude-code-agent/commit/e157e307ab4d29d05f192f2cb4e230b62e53b10d))
+* **chart:** add envFrom support for external config injection ([#15](https://github.com/dwmkerr/claude-code-agent/issues/15)) ([f683daf](https://github.com/dwmkerr/claude-code-agent/commit/f683daf2df5f6101515cda0df7e7d646c4be8a32))
+
 ## [0.1.2](https://github.com/dwmkerr/claude-code-agent/compare/v0.1.1...v0.1.2) (2025-12-08)
 
 
