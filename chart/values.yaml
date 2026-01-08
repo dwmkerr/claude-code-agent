@@ -23,6 +23,18 @@ env:
   # OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
   # OTEL_EXPORTER_OTLP_ENDPOINT: "phoenix-svc.phoenix.svc.cluster.local:4317"
 
+# Environment variables from ConfigMaps/Secrets
+# Useful for injecting configuration from external sources (e.g., OTEL settings)
+# Example:
+#   envFrom:
+#   - configMapRef:
+#       name: otel-environment-variables
+#       optional: true
+#   - secretRef:
+#       name: otel-environment-variables
+#       optional: true
+envFrom: []
+
 # Claude Code configuration via ConfigMaps
 #
 # Create from a directory: kubectl create configmap my-defaults --from-file=./claude-defaults/
