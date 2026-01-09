@@ -51,6 +51,7 @@ program
   .option('-p, --port <number>', 'server port', parseInt)
   .option('-H, --host <string>', 'server host')
   .option('-w, --workspace <path>', 'workspace directory')
+  .option('-c, --config <path>', 'path to YAML config file')
   .option('--timeout <seconds>', 'execution timeout in seconds', parseInt)
   .option('--log-path <path>', 'path to write Claude output logs')
   .option('--agent-name <name>', 'agent name for A2A registration')
@@ -72,10 +73,11 @@ const cliOptions: CliOptions = {
   timeout: opts.timeout,
   logPath: opts.logPath,
   agentName: opts.agentName,
+  config: opts.config,
 };
 
-// Load .env file if present
-const dotenvResult = dotenv.config();
+// Load .env file if present (override existing env vars)
+const dotenvResult = dotenv.config({ override: true });
 const loadedEnvVars = dotenvResult.parsed ? Object.keys(dotenvResult.parsed) : [];
 
 // Load configuration (CLI options override env vars)

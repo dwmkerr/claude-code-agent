@@ -44,7 +44,8 @@
     "dotenv": "^16.4.5",
     "execa": "^9.6.0",
     "express": "^5.1.0",
-    "uuid": "^9.0.0"
+    "uuid": "^9.0.0",
+    "yaml": "^2.8.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",

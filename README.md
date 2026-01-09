@@ -131,7 +131,7 @@ devspace dev -p ark  # Ark example with DinD for Kind clusters
 
 ## Configuration
 
-### CLI Options
+All options are documented in [`claude-code-agent.example.yaml`](./claude-code-agent.example.yaml). Environment variables from `.env` are loaded on startup (overriding existing vars). The config file `.claude-code-agent.yaml` is loaded by default if present.
 
 ```bash
 claude-code-agent [options] [-- <claude-code-args>]
@@ -140,6 +140,7 @@ Options:
   -p, --port <number>      Server port (default: 2222)
   -H, --host <string>      Server host (default: 0.0.0.0)
   -w, --workspace <path>   Workspace directory
+  -c, --config <path>      Path to YAML config file
   --timeout <seconds>      Execution timeout (default: 3600)
   --log-path <path>        Path to write Claude output logs
   --agent-name <name>      Agent name for A2A registration
