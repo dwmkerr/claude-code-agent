@@ -67,3 +67,20 @@ claudeArgs: []
 #  - "/config/mcp.json"
 #  - "--allowedTools"
 #  - "Bash,Read"
+
+# OpenTelemetry tracing configuration (experimental)
+# Enable tracing with --experimental-otel-traces CLI flag or EXPERIMENTAL_OTEL_TRACES=1
+# These options configure how spans are generated.
+otel:
+  tracing:
+    # Aggregate all spans into a single parent span per A2A message
+    # When false (default), each LLM call and tool use creates independent spans
+    # When true, creates a single trace with nested spans (waits for completion)
+    # Default: false
+    aggregateSpans: false
+
+    # How to populate input.value attribute on spans
+    # - "chained": Each span's input is the previous span's output (default)
+    # - "full": Input is the complete conversation history (true LLM input)
+    # Default: chained
+    inputMode: "chained"
