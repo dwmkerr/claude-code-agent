@@ -1,0 +1,10 @@
+# Development config for OTEL tracing. This is for experimenting with tracing.
+otel:
+  tracing:
+    enabled: true
+    # Don't put traces into a single aggregate span, otherwise we don't get
+    # output till the overall process ends.
+    aggregateSpans: false
+    
+    # Full mode - input is the complete conversation history (true LLM input).
+    inputMode: "full" # or 'chained'

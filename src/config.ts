@@ -19,6 +19,7 @@ export interface ConfigFile {
   claudeArgs?: string[];
   otel?: {
     tracing?: {
+      enabled?: boolean;
       aggregateSpans?: boolean;
       inputMode?: 'chained' | 'full';
     };
@@ -36,6 +37,7 @@ export interface Config {
   claudeArgs: string[];
   otel: {
     tracing: {
+      enabled: boolean;
       aggregateSpans: boolean;
       inputMode: 'chained' | 'full';
     };
@@ -128,9 +130,10 @@ export function loadConfig(cliOptions: CliOptions = {}, claudeArgs: string[] = [
     // Claude args: config file args first, then CLI args appended
     claudeArgs: [...(fileConfig?.claudeArgs || []), ...claudeArgs],
 
-    // OTEL tracing config (experimental, file only)
+    // OTEL tracing config (file only, endpoint via OTEL_EXPORTER_OTLP_ENDPOINT env var)
     otel: {
       tracing: {
+        enabled: fileConfig?.otel?.tracing?.enabled ?? false,
         aggregateSpans: fileConfig?.otel?.tracing?.aggregateSpans ?? false,
         inputMode: fileConfig?.otel?.tracing?.inputMode ?? 'chained',
       },

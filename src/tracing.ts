@@ -7,19 +7,20 @@ import { trace, Tracer } from '@opentelemetry/api';
 import pkg from '../package.json' with { type: 'json' };
 
 let sdk: NodeSDK | null = null;
+let tracingEnabled = false;
 
 export function isTracingEnabled(): boolean {
-  return process.env.EXPERIMENTAL_OTEL_TRACES === '1';
+  return tracingEnabled;
 }
 
-export function initTracing(): void {
-  if (!isTracingEnabled()) {
+export function initTracing(enabled: boolean): void {
+  if (!enabled) {
     return;
   }
 
   const endpoint = process.env.OTEL_EXPORTER_OTLP_ENDPOINT;
   if (!endpoint) {
-    console.warn('EXPERIMENTAL_OTEL_TRACES=1 but OTEL_EXPORTER_OTLP_ENDPOINT not set, tracing disabled');
+    console.warn('otel.tracing.enabled=true but OTEL_EXPORTER_OTLP_ENDPOINT not set, tracing disabled');
     return;
   }
 
@@ -38,6 +39,7 @@ export function initTracing(): void {
   });
 
   sdk.start();
+  tracingEnabled = true;
 }
 
 export async function shutdownTracing(): Promise<void> {

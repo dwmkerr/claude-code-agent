@@ -57,7 +57,6 @@ program
   .option('--log-path <path>', 'path to write Claude output logs')
   .option('--agent-name <name>', 'agent name for A2A registration')
   .option('--claude-defaults-dir <path>', 'copy contents to ~/.claude on startup')
-  .option('--experimental-otel-traces', 'enable experimental OpenTelemetry tracing')
   .allowUnknownOption()
   .allowExcessArguments()
   .parse(process.argv);
@@ -82,16 +81,11 @@ const cliOptions: CliOptions = {
 const dotenvResult = dotenv.config({ override: true });
 const loadedEnvVars = dotenvResult.parsed ? Object.keys(dotenvResult.parsed) : [];
 
-// Enable OTEL tracing if CLI flag is set
-if (opts.experimentalOtelTraces) {
-  process.env.EXPERIMENTAL_OTEL_TRACES = '1';
-}
-
-// Initialize OpenTelemetry tracing (must happen early, before other imports use tracer)
-initTracing();
-
 // Load configuration (CLI options override env vars)
 const config = loadConfig(cliOptions, claudeArgs);
+
+// Initialize OpenTelemetry tracing (must happen early, before other imports use tracer)
+initTracing(config.otel.tracing.enabled);
 
 // Copy claude-defaults to ~/.claude if specified
 const claudeDefaultsDir = opts.claudeDefaultsDir;

@@ -46,7 +46,7 @@ make dev-safe
 # env -i npm run dev
 ```
 
-Or run in a container (safer and more isolated):
+Or run in a container (event safer and more isolated):
 
 ```bash
 # Run in a container. Also loads the .env file if present.
@@ -54,7 +54,13 @@ make docker-run
 # Server: http://localhost:2222
 ```
 
-Query with `curl`:
+Send an A2A message. You'll see rich output in the A2A server in real time:
+
+```bash
+./scripts/a2a-msg.sh "Tell me what tools you have access to, test one out."
+```
+
+This is a simple wrapper around `curl` - you can also just hit the server directly:
 
 ```bash
 curl -N -X POST http://localhost:2222/ \

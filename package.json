@@ -12,7 +12,7 @@
     "build": "tsc",
     "start": "node dist/main.js",
     "dev": "tsx watch src/main.ts",
-    "dev:otel-unsafe": "EXPERIMENTAL_OTEL_TRACES=1   OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:6006 tsx watch src/main.ts -- --dangerously-skip-permissions",
+    "dev:otel-unsafe": "OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:6006 tsx watch src/main.ts -c claude-code-agent.otel-unsafe.yaml -- --dangerously-skip-permissions",
     "test": "jest",
     "lint": "eslint src/**/*.ts"
   },

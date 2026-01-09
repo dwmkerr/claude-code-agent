@@ -135,12 +135,27 @@ Phoenix uses the `openinference.span.kind` attribute to determine span display (
 
 **Source of truth**: See `src/lib/span-transformer.ts` for the complete list of attributes set on each span type.
 
+## Configuration
+
+Tracing is enabled via the config file:
+
+```yaml
+otel:
+  tracing:
+    enabled: true
+```
+
+| Config Option | Description | Default |
+|---------------|-------------|---------|
+| `otel.tracing.enabled` | Enable tracing | `false` |
+| `otel.tracing.aggregateSpans` | Aggregate into single parent span | `false` |
+| `otel.tracing.inputMode` | Input chaining mode (`chained` or `full`) | `chained` |
+
 ## Environment Variables
 
 | Variable | Description | Example |
 |----------|-------------|---------|
-| `EXPERIMENTAL_OTEL_TRACES` | Enable experimental tracing | `1` |
-| `OTEL_EXPORTER_OTLP_ENDPOINT` | OTLP collector endpoint | `http://localhost:6006` |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | OTLP collector endpoint (required when tracing enabled) | `http://localhost:6006` |
 | `OTEL_SERVICE_NAME` | Service name in traces | `claude-code-agent` |
 
 ## Dependencies
@@ -165,3 +180,13 @@ Phoenix uses the `openinference.span.kind` attribute to determine span display (
 | Chained input/output | Easier to visualize agentic loop (trade-off: not true LLM I/O) |
 | Truncate to 1000 chars | Avoid bloating spans with full file contents |
 | Both `tool.*` and `input/output.value` | Compatibility with both ark conventions and Phoenix UI |
+
+## Screenshots
+
+### Session Overview
+
+![Phoenix session view](./images/otel-claude-session.png)
+
+### Tool Call Detail
+
+![Phoenix tool call detail](./images/otel-claude-tool-call.png)

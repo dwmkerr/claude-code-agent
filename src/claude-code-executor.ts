@@ -151,6 +151,7 @@ export class ClaudeCodeExecutor implements AgentExecutor {
         contextId,
         messageId,
         userText: messageText,
+        inputMode: this.config.otel.tracing.inputMode,
       });
     }
 

@@ -13,6 +13,7 @@ export interface SessionContext {
   contextId: string;
   messageId: string;
   userText: string;
+  inputMode?: 'chained' | 'full';
 }
 
 interface ContentItem {
@@ -46,17 +47,75 @@ interface PendingToolCall {
   timestamp: number;
 }
 
+interface Message {
+  role: string;
+  content?: string;
+  tool_calls?: Array<{ name: string; arguments: string }>;
+  name?: string; // tool name for tool results
+}
+
 export class SpanTransformer {
   private tracer: Tracer;
   private sessionContext: SessionContext;
   private sessionId?: string;
   private lastOutput?: string;
+  private messages: Message[] = [];
+  private inputMode: 'chained' | 'full';
   private pendingToolCalls: Map<string, PendingToolCall> = new Map();
 
   constructor(tracer: Tracer, sessionContext: SessionContext) {
     this.tracer = tracer;
     this.sessionContext = sessionContext;
+    this.inputMode = sessionContext.inputMode || 'chained';
     this.lastOutput = sessionContext.userText;
+    this.messages.push({ role: 'user', content: sessionContext.userText });
+  }
+
+  private getInputValue(): string {
+    return this.lastOutput || '';
+  }
+
+  private addMessage(role: string, content: string): void {
+    this.messages.push({ role, content });
+  }
+
+  private addToolCall(name: string, args: string): void {
+    // OpenInference: assistant message with tool_calls array
+    this.messages.push({
+      role: 'assistant',
+      tool_calls: [{ name, arguments: args }],
+    });
+  }
+
+  private addToolResult(name: string, content: string): void {
+    // OpenInference: tool role with name attribute
+    this.messages.push({ role: 'tool', name, content });
+  }
+
+  // Build llm.input_messages attributes in OpenInference format
+  private getInputMessagesAttrs(): Record<string, string> {
+    if (this.inputMode !== 'full') {
+      return {};
+    }
+    const attrs: Record<string, string> = {};
+    for (let i = 0; i < this.messages.length; i++) {
+      const msg = this.messages[i];
+      attrs[`llm.input_messages.${i}.message.role`] = msg.role;
+      if (msg.content) {
+        attrs[`llm.input_messages.${i}.message.content`] = truncate(msg.content);
+      }
+      if (msg.name) {
+        attrs[`llm.input_messages.${i}.message.name`] = msg.name;
+      }
+      if (msg.tool_calls) {
+        for (let j = 0; j < msg.tool_calls.length; j++) {
+          const tc = msg.tool_calls[j];
+          attrs[`llm.input_messages.${i}.message.tool_calls.${j}.tool_call.function.name`] = tc.name;
+          attrs[`llm.input_messages.${i}.message.tool_calls.${j}.tool_call.function.arguments`] = truncate(tc.arguments);
+        }
+      }
+    }
+    return attrs;
   }
 
   onMessage(msg: ClaudeMessage): void {
@@ -96,18 +155,20 @@ export class SpanTransformer {
     } else if (msg.msg_type === 'result') {
       const attrs: Record<string, string | number | boolean> = {
         ...this.baseAttributes(),
+        ...this.getInputMessagesAttrs(),
         'openinference.span.kind': 'LLM',
         'component': 'model',
         'type': 'generation',
         'llm.model.name': 'claude',
         'llm.model.provider': 'anthropic',
-        'input.value': truncate(this.lastOutput),
+        'input.value': truncate(this.getInputValue()),
       };
       if (msg.result) {
         attrs['output.value'] = truncate(msg.result);
         attrs['llm.output_messages.0.message.role'] = 'assistant';
         attrs['llm.output_messages.0.message.content'] = truncate(msg.result);
         this.lastOutput = msg.result;
+        this.addMessage('result', msg.result);
       }
       if (msg.duration_ms !== undefined) {
         attrs['llm.duration_ms'] = msg.duration_ms;
@@ -134,12 +195,13 @@ export class SpanTransformer {
         const span = this.tracer.startSpan('llm.claude', {
           attributes: {
             ...this.baseAttributes(),
+            ...this.getInputMessagesAttrs(),
             'openinference.span.kind': 'LLM',
             'component': 'model',
             'type': 'generation',
             'llm.model.name': 'claude',
             'llm.model.provider': 'anthropic',
-            'input.value': truncate(this.lastOutput),
+            'input.value': truncate(this.getInputValue()),
             'output.value': truncate(output),
             'llm.output_messages.0.message.role': 'assistant',
             'llm.output_messages.0.message.content': truncate(output),
@@ -147,6 +209,7 @@ export class SpanTransformer {
         });
         span.end();
         this.lastOutput = output;
+        this.addMessage('assistant', output);
       } else if (item.type === 'tool_use') {
         const toolName = item.name || 'unknown';
         const toolInput = item.input ? JSON.stringify(item.input) : '';
@@ -160,6 +223,7 @@ export class SpanTransformer {
             timestamp: Date.now(),
           });
         }
+        this.addToolCall(toolName, toolInput);
       }
     }
   }
@@ -211,6 +275,7 @@ export class SpanTransformer {
         }
 
         this.lastOutput = toolOutput;
+        this.addToolResult(toolName, toolOutput);
       }
     }
   }

@@ -68,11 +68,31 @@ claudeArgs: []
 #  - "--allowedTools"
 #  - "Bash,Read"
 
-# OpenTelemetry tracing configuration (experimental)
-# Enable tracing with --experimental-otel-traces CLI flag or EXPERIMENTAL_OTEL_TRACES=1
-# These options configure how spans are generated.
+# OpenTelemetry configuration
+#
+# There are two separate OTEL systems:
+#
+# 1. Claude Code's built-in telemetry (metrics/events):
+#    Enable with CLAUDE_CODE_ENABLE_TELEMETRY=1
+#    Exports metrics and events via standard OTEL protocol
+#
+# 2. Claude Code Agent span transformer (configured below):
+#    Creates LLM and tool spans from Claude's JSON output
+#    Useful for visualizing agentic loops in Phoenix/Jaeger
+#
+# Both use standard OTEL env vars for export configuration:
+#
+#   OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:6006
+#   OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
+#   OTEL_SERVICE_NAME=claude-code-agent
+#
+# You can set these in .env for convenience.
 otel:
   tracing:
+    # Enable tracing
+    # Default: false
+    enabled: false
+
     # Aggregate all spans into a single parent span per A2A message
     # When false (default), each LLM call and tool use creates independent spans
     # When true, creates a single trace with nested spans (waits for completion)
