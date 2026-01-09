@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.4](https://github.com/dwmkerr/claude-code-agent/compare/v0.1.3...v0.1.4) (2026-01-09)
+
+
+### Features
+
+* add YAML config file support ([#17](https://github.com/dwmkerr/claude-code-agent/issues/17)) ([1a02736](https://github.com/dwmkerr/claude-code-agent/commit/1a02736c514787bd67fc95fd691fb6ab3472270c))
+
 ## [0.1.3](https://github.com/dwmkerr/claude-code-agent/compare/v0.1.2...v0.1.3) (2026-01-08)
 
 
