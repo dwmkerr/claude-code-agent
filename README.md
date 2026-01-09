@@ -210,6 +210,25 @@ docker run -v ./mcp.json:/config/mcp.json:ro \
 
 See [`examples/ark/`](./examples/ark/) for a complete example with MCP servers.
 
+### Telemetry (OpenTelemetry)
+
+Enable OTEL tracing by setting `CLAUDE_CODE_ENABLE_TELEMETRY=1`:
+
+```bash
+# Docker
+docker run -e CLAUDE_CODE_ENABLE_TELEMETRY=1 \
+  -e OTEL_EXPORTER_OTLP_ENDPOINT=http://phoenix:6006 ...
+
+# Helm
+helm install ... --set env.CLAUDE_CODE_ENABLE_TELEMETRY=1
+
+# With envFrom for OTEL secrets (e.g., from Phoenix)
+helm install ... \
+  --set env.CLAUDE_CODE_ENABLE_TELEMETRY=1 \
+  --set envFrom[0].secretRef.name=otel-environment-variables \
+  --set envFrom[0].secretRef.optional=true
+```
+
 ### Claude Configuration
 
 Optionally mount config files to `/home/claude-code-agent/.claude-defaults/`:

@@ -16,12 +16,9 @@ apiKeySecret: ""
 env:
   CLAUDE_TIMEOUT_SECONDS: "3600"
   FORCE_COLOR: "1"
-  # OpenTelemetry - uncomment or set in custom values to enable
+  # OpenTelemetry - uncomment to enable tracing
   # CLAUDE_CODE_ENABLE_TELEMETRY: "1"
-  # OTEL_METRICS_EXPORTER: "otlp"
-  # OTEL_LOGS_EXPORTER: "otlp"
-  # OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
-  # OTEL_EXPORTER_OTLP_ENDPOINT: "phoenix-svc.phoenix.svc.cluster.local:4317"
+  # OTEL_EXPORTER_OTLP_ENDPOINT: "http://phoenix-svc.phoenix.svc.cluster.local:6006"  # example
 
 # Environment variables from ConfigMaps/Secrets
 # Useful for injecting configuration from external sources (e.g., OTEL settings)
