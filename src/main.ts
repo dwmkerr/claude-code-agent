@@ -13,6 +13,7 @@ import chalk from 'chalk';
 import { setupA2ARoutes } from './routes.js';
 import { loadConfig, CliOptions } from './config.js';
 import { loadSkills } from './skill-loader.js';
+import { initTracing, shutdownTracing, isTracingEnabled } from './tracing.js';
 import pkg from '../package.json' with { type: 'json' };
 
 // Count lines in a file, returns null if file doesn't exist
@@ -56,6 +57,7 @@ program
   .option('--log-path <path>', 'path to write Claude output logs')
   .option('--agent-name <name>', 'agent name for A2A registration')
   .option('--claude-defaults-dir <path>', 'copy contents to ~/.claude on startup')
+  .option('--experimental-otel-traces', 'enable experimental OpenTelemetry tracing')
   .allowUnknownOption()
   .allowExcessArguments()
   .parse(process.argv);
@@ -79,6 +81,14 @@ const cliOptions: CliOptions = {
 // Load .env file if present (override existing env vars)
 const dotenvResult = dotenv.config({ override: true });
 const loadedEnvVars = dotenvResult.parsed ? Object.keys(dotenvResult.parsed) : [];
+
+// Enable OTEL tracing if CLI flag is set
+if (opts.experimentalOtelTraces) {
+  process.env.EXPERIMENTAL_OTEL_TRACES = '1';
+}
+
+// Initialize OpenTelemetry tracing (must happen early, before other imports use tracer)
+initTracing();
 
 // Load configuration (CLI options override env vars)
 const config = loadConfig(cliOptions, claudeArgs);
@@ -191,11 +201,16 @@ const server = app.listen(config.port, config.host, () => {
   }
   // Show OTEL config if telemetry is enabled
   if (process.env.CLAUDE_CODE_ENABLE_TELEMETRY === '1') {
-    console.log('OpenTelemetry:');
+    console.log('OpenTelemetry (Claude Code):');
     console.log(`  Endpoint: ${process.env.OTEL_EXPORTER_OTLP_ENDPOINT || '(not set)'}`);
     console.log(`  Protocol: ${process.env.OTEL_EXPORTER_OTLP_PROTOCOL || '(not set)'}`);
     console.log(`  Metrics exporter: ${process.env.OTEL_METRICS_EXPORTER || '(not set)'}`);
     console.log(`  Logs exporter: ${process.env.OTEL_LOGS_EXPORTER || '(not set)'}`);
+  }
+  // Show experimental tracing config
+  if (isTracingEnabled()) {
+    console.log('OpenTelemetry Traces (experimental):');
+    console.log(`  Endpoint: ${process.env.OTEL_EXPORTER_OTLP_ENDPOINT || '(not set)'}`);
   }
   console.log(`Running on: http://${config.host}:${config.port}`);
 }).on('error', (err) => {
@@ -204,8 +219,9 @@ const server = app.listen(config.port, config.host, () => {
 });
 
 // Graceful shutdown on SIGINT/SIGTERM
-const shutdown = () => {
+const shutdown = async () => {
   console.log('\nShutting down...');
+  await shutdownTracing();
   server.close(() => process.exit(0));
 };
 process.on('SIGINT', shutdown);

@@ -12,6 +12,8 @@ import { Kind, Role, TaskState } from './protocol.js';
 import { findClaudePath } from './lib/claude-path.js';
 import { formatChunkPreview, getTermWidth, truncateToFit } from './lib/format-chunk.js';
 import { Config } from './config.js';
+import { getTracer, isTracingEnabled } from './tracing.js';
+import { SpanTransformer, ClaudeMessage as SpanClaudeMessage } from './lib/span-transformer.js';
 
 interface ClaudeMessage {
   type: string;
@@ -100,8 +102,9 @@ export class ClaudeCodeExecutor implements AgentExecutor {
     });
 
     // Execute Claude Code
+    const messageId = (userMessage as any).messageId || uuidv4();
     try {
-      await this.executeClaudeCode(userText, contextId, taskId, eventBus);
+      await this.executeClaudeCode(userText, contextId, taskId, eventBus, messageId);
     } catch (error: any) {
       console.error(chalk.red(`error executing Claude Code: ${error.message || error}`));
 
@@ -131,13 +134,25 @@ export class ClaudeCodeExecutor implements AgentExecutor {
     messageText: string,
     contextId: string,
     taskId: string,
-    eventBus: ExecutionEventBus
+    eventBus: ExecutionEventBus,
+    messageId: string
   ): Promise<void> {
     const sessionId = this.sessions.get(contextId);
     const args = this.buildCommandArgs(messageText, sessionId);
 
     const abortController = new AbortController();
     this.runningProcesses.set(taskId, abortController);
+
+    // Create span transformer for tracing if enabled
+    let spanTransformer: SpanTransformer | null = null;
+    if (isTracingEnabled()) {
+      spanTransformer = new SpanTransformer(getTracer(), {
+        taskId,
+        contextId,
+        messageId,
+        userText: messageText,
+      });
+    }
 
     try {
       const termWidth = getTermWidth();
@@ -178,6 +193,11 @@ export class ClaudeCodeExecutor implements AgentExecutor {
             // Log each JSON chunk as it arrives
             const tw = getTermWidth();
             console.log(`      < ${formatChunkPreview(msg, 8, tw)}`);
+
+            // Send to span transformer for tracing
+            if (spanTransformer) {
+              spanTransformer.onMessage(msg as SpanClaudeMessage);
+            }
 
             // Handle different message types
             if (msg.type === 'user' || msg.type === 'assistant') {
@@ -237,6 +257,11 @@ export class ClaudeCodeExecutor implements AgentExecutor {
         this.sessions.set(contextId, newSessionId);
       }
 
+      // End tracing span on success
+      if (spanTransformer) {
+        spanTransformer.end();
+      }
+
       // Send final response as a completed task
       const finalText = accumulatedText || 'No response from Claude Code';
       const oneLine = finalText.replace(/\s+/g, ' ').trim();
@@ -268,6 +293,11 @@ export class ClaudeCodeExecutor implements AgentExecutor {
       });
     } catch (error: any) {
       this.runningProcesses.delete(taskId);
+
+      // End tracing span on error
+      if (spanTransformer) {
+        spanTransformer.end(error);
+      }
 
       // Extract error message from Claude Code JSON output or stderr
       let errorMessage = '';
