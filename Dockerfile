@@ -1,4 +1,4 @@
-ARG BASE_VERSION="0.1.3" # x-release-please-version
+ARG BASE_VERSION="0.1.4" # x-release-please-version
 
 FROM node:20-slim AS builder
 
