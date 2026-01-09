@@ -172,7 +172,7 @@ const server = app.listen(config.port, config.host, () => {
     console.log(`Claude args: ${config.claudeArgs.join(' ')}`);
   }
   if (userClaudeMdLines !== null) {
-    console.log(`  ~/CLAUDE.md: ${userClaudeMdLines} lines`);
+    console.log(`  ~/.claude/CLAUDE.md: ${userClaudeMdLines} lines`);
   }
   if (projectClaudeMdLines !== null) {
     console.log(`  .claude/CLAUDE.md: ${projectClaudeMdLines} lines`);
