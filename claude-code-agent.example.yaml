@@ -1,0 +1,69 @@
+# claude-code-agent configuration
+#
+# Configuration values can be set via (in order of precedence):
+#   1. Command line arguments (highest priority)
+#   2. Environment variables
+#   3. This config file
+#   4. Default values (lowest priority)
+#
+# Config file locations (first found is used):
+#   1. Path specified by --config CLI argument
+#   2. Path specified by CLAUDE_CODE_AGENT_CONFIG env var
+#   3. ./.claude-code-agent.yaml (dotfile in current directory)
+#
+# Copy this file to .claude-code-agent.yaml and customize as needed.
+
+# Server configuration
+server:
+  # Host to bind the server to
+  # CLI: --host, -H
+  # Env: HOST
+  # Default: 0.0.0.0
+  host: "0.0.0.0"
+
+  # Port to listen on
+  # CLI: --port, -p
+  # Env: PORT
+  # Default: 2222
+  port: 2222
+
+# Agent configuration
+agent:
+  # Agent name for A2A registration
+  # CLI: --agent-name
+  # Env: CLAUDE_AGENT_NAME
+  # Default: claude-code
+  name: "claude-code"
+
+  # Workspace directory for Claude Code operations
+  # CLI: --workspace, -w
+  # Env: CLAUDE_CODE_WORKSPACE_DIR
+  # Default: ./workspace (or /workspace in containers)
+  workspace: "./workspace"
+
+  # Execution timeout in seconds
+  # CLI: --timeout
+  # Env: CLAUDE_TIMEOUT_SECONDS
+  # Default: 3600 (1 hour)
+  timeout: 3600
+
+# Logging configuration
+logging:
+  # Path to write Claude output logs
+  # CLI: --log-path
+  # Env: CLAUDE_LOG_PATH
+  # Default: null (no logging)
+  path: null
+
+# Claude Code passthrough arguments
+# These args are passed directly to the Claude Code CLI after --
+# CLI args (after --) are appended to config file args
+# Default: [] (empty)
+claudeArgs: []
+
+# Example:
+# claudeArgs:
+#  - "--mcp-config"
+#  - "/config/mcp.json"
+#  - "--allowedTools"
+#  - "Bash,Read"
