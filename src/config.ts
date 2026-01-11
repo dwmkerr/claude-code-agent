@@ -17,6 +17,13 @@ export interface ConfigFile {
     path?: string | null;
   };
   claudeArgs?: string[];
+  otel?: {
+    tracing?: {
+      enabled?: boolean;
+      aggregateSpans?: boolean;
+      inputMode?: 'chained' | 'full';
+    };
+  };
 }
 
 // Runtime config (resolved from all sources)
@@ -28,6 +35,13 @@ export interface Config {
   logPath: string | null;
   agentName: string;
   claudeArgs: string[];
+  otel: {
+    tracing: {
+      enabled: boolean;
+      aggregateSpans: boolean;
+      inputMode: 'chained' | 'full';
+    };
+  };
 }
 
 export interface CliOptions {
@@ -115,5 +129,14 @@ export function loadConfig(cliOptions: CliOptions = {}, claudeArgs: string[] = [
 
     // Claude args: config file args first, then CLI args appended
     claudeArgs: [...(fileConfig?.claudeArgs || []), ...claudeArgs],
+
+    // OTEL tracing config (file only, endpoint via OTEL_EXPORTER_OTLP_ENDPOINT env var)
+    otel: {
+      tracing: {
+        enabled: fileConfig?.otel?.tracing?.enabled ?? false,
+        aggregateSpans: fileConfig?.otel?.tracing?.aggregateSpans ?? false,
+        inputMode: fileConfig?.otel?.tracing?.inputMode ?? 'chained',
+      },
+    },
   };
 }

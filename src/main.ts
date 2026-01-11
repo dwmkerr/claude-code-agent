@@ -13,6 +13,7 @@ import chalk from 'chalk';
 import { setupA2ARoutes } from './routes.js';
 import { loadConfig, CliOptions } from './config.js';
 import { loadSkills } from './skill-loader.js';
+import { initTracing, shutdownTracing, isTracingEnabled } from './tracing.js';
 import pkg from '../package.json' with { type: 'json' };
 
 // Count lines in a file, returns null if file doesn't exist
@@ -82,6 +83,9 @@ const loadedEnvVars = dotenvResult.parsed ? Object.keys(dotenvResult.parsed) : [
 
 // Load configuration (CLI options override env vars)
 const config = loadConfig(cliOptions, claudeArgs);
+
+// Initialize OpenTelemetry tracing (must happen early, before other imports use tracer)
+initTracing(config.otel.tracing.enabled);
 
 // Copy claude-defaults to ~/.claude if specified
 const claudeDefaultsDir = opts.claudeDefaultsDir;
@@ -168,7 +172,7 @@ const server = app.listen(config.port, config.host, () => {
     console.log(`Claude args: ${config.claudeArgs.join(' ')}`);
   }
   if (userClaudeMdLines !== null) {
-    console.log(`  ~/CLAUDE.md: ${userClaudeMdLines} lines`);
+    console.log(`  ~/.claude/CLAUDE.md: ${userClaudeMdLines} lines`);
   }
   if (projectClaudeMdLines !== null) {
     console.log(`  .claude/CLAUDE.md: ${projectClaudeMdLines} lines`);
@@ -191,11 +195,16 @@ const server = app.listen(config.port, config.host, () => {
   }
   // Show OTEL config if telemetry is enabled
   if (process.env.CLAUDE_CODE_ENABLE_TELEMETRY === '1') {
-    console.log('OpenTelemetry:');
+    console.log('OpenTelemetry (Claude Code):');
     console.log(`  Endpoint: ${process.env.OTEL_EXPORTER_OTLP_ENDPOINT || '(not set)'}`);
     console.log(`  Protocol: ${process.env.OTEL_EXPORTER_OTLP_PROTOCOL || '(not set)'}`);
     console.log(`  Metrics exporter: ${process.env.OTEL_METRICS_EXPORTER || '(not set)'}`);
     console.log(`  Logs exporter: ${process.env.OTEL_LOGS_EXPORTER || '(not set)'}`);
+  }
+  // Show experimental tracing config
+  if (isTracingEnabled()) {
+    console.log('OpenTelemetry Traces (experimental):');
+    console.log(`  Endpoint: ${process.env.OTEL_EXPORTER_OTLP_ENDPOINT || '(not set)'}`);
   }
   console.log(`Running on: http://${config.host}:${config.port}`);
 }).on('error', (err) => {
@@ -204,8 +213,9 @@ const server = app.listen(config.port, config.host, () => {
 });
 
 // Graceful shutdown on SIGINT/SIGTERM
-const shutdown = () => {
+const shutdown = async () => {
   console.log('\nShutting down...');
+  await shutdownTracing();
   server.close(() => process.exit(0));
 };
 process.on('SIGINT', shutdown);
