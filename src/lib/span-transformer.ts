@@ -280,7 +280,7 @@ export class SpanTransformer {
     }
   }
 
-  end(_error?: Error): void {
+  end(): void {
     // No-op - each message creates its own independent span
   }
 }

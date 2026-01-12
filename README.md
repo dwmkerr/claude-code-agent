@@ -1,12 +1,13 @@
 <p align="center">
   <h1 align="center"><code>claude-code-agent</code></h1>
-  <h4 align="center">Run Claude Code as a containerized A2A agent</h4>
+  <h4 align="center">Run Claude Code as an isolated and containerized A2A agent - orchestrate multiple sessions with full visibility on Claude operations and messages. Configure marketplaces, plugins, MCP servers and more.</h4>
   <p align="center">
     <a href="#quickstart">Quickstart</a> |
-    <a href="#deploy">Deploy</a> |
-    <a href="#configuration">Configuration (MCP, Skills, etc)</a> |
-    <a href="#examples">Examples</a>
-    <a href="#important">Important - Managing Risk</a>
+    <a href="#sending-messages">Sending Messages</a> |
+    <a href="#installation">Installation</a> |
+    <a href="#configuration">Configuration</a> |
+    <a href="#examples">Examples</a> |
+    <a href="#important">Important</a>
   </p>
   <p align="center">
     <a href="https://github.com/dwmkerr/claude-code-agent/actions/workflows/cicd.yaml"><img src="https://github.com/dwmkerr/claude-code-agent/actions/workflows/cicd.yaml/badge.svg" alt="cicd"></a>
@@ -29,11 +30,9 @@ I am using this agent extensively in my work on [Ark](https://github.com/agents-
 Run the Claude Code Agent A2A server locally (check [important note on managing risk](#important):
 
 ```bash
-# Set your API key.
+# Set your API key. OR use as .env file to set your keys.
 export ANTHROPIC_API_KEY="sk-***"
-
-# Alternatively, use a .env file.
-# cp .env.sample .env  # now set your key.
+# cp .env.sample .env
 
 # Run in local development / live reload mode.
 npm install && npm run dev
@@ -54,15 +53,38 @@ make docker-run
 # Server: http://localhost:2222
 ```
 
-Send an A2A message. You'll see rich output in the A2A server in real time:
+## Sending Messages
+
+The A2A server takes incoming requests and starts a session for each one. Each session runs Claude Code in an isolated workspace - you can run as many sessions in parallel as you need. There are a few ways to send messages to an A2A server.
+
+**Script**
+
+Use the `a2a-msg.sh` script to send an A2A message. You'll see rich output in the A2A server in real time:
 
 ```bash
 ./scripts/a2a-msg.sh "Tell me what tools you have access to, test one out."
 ```
 
-This is a simple wrapper around `curl` - you can also just hit the server directly:
+Example output:
+
+```
+→ Executing: "clone dwmkerr/claude-code-agent and summarise top three issues"
+  < system:init session=07898273...
+  < assistant: "I'll clone the repository and summarize the top three issues."
+  < assistant: Bash {"command":"git clone https://github.com/dwmkerr/claude-..."}
+  < assistant: Bash {"command":"gh issue list --limit 3"}
+     ... (hidden for brevity in docs)
+  ← Response: "Here are the top 3 issues: #22 OTEL session ID..."
+```
+
+This script is just a wrapper around the raw `curl` command that can be used to message an A2A server (see below).
+
+**cURL**
+
+You can also just hit the server directly with `curl`:
 
 ```bash
+# Construct an A2A message and send to the A2A server.
 curl -N -X POST http://localhost:2222/ \
   -H "Content-Type: application/json" \
   -d @- << 'EOF'
@@ -82,58 +104,35 @@ curl -N -X POST http://localhost:2222/ \
 EOF
 ```
 
-Open with A2A Inspector:
+Example output:
+
+```json
+{"jsonrpc":"2.0","id":1,"result":{"messageId":"...","contextId":"ctx-1",...}}
+{"jsonrpc":"2.0","method":"message/stream","params":{"delta":{"text":"I'll..."}}}
+   ... (hidden for brevity in docs)
+{"jsonrpc":"2.0","method":"message/stream","params":{"status":"completed"}}
+```
+
+**A2A Inspector**
+
+You can run the [A2A Inspector](https://github.com/a2aproject/a2a-inspector) tool to connect to the server and send messages:
 
 ```bash
+# Clone and run the A2A inspector tool.
 git clone https://github.com/a2aproject/a2a-inspector
 cd a2a-inspector && ./scripts/run.sh
-# Connect to http://localhost:2222
+
+# Then connect to http://localhost:2222
 ```
 
-Run on [Ark](https://github.com/mckinsey/agents-at-scale-ark):
+## Installation
 
-```bash
-# Install ark.
-npm install -g @agents-at-scale/ark
-ark install
+See [Installation Guide](./docs/installation.md) for:
 
-# Either install the agent...
-helm install claude-code-agent oci://ghcr.io/dwmkerr/charts/claude-code-agent --set apiKey=$ANTHROPIC_API_KEY
-# ...or run in the cluster with live-reload
-devspace dev
-
-# Check the status of the a2a server and claude code agent.
-kubectl get a2aserver
-kubectl get agent
-
-# Run the ark dashboard and chat, send a single message, or run the interactive
-# chat in the terminal.
-ark dashboard
-ark query agent/claude-code 'hi'
-```
-
-## Deploy
-
-**Docker**
-
-```bash
-docker run -e ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY -p 2222:2222 \
-  ghcr.io/dwmkerr/claude-code-agent
-```
-
-**Helm**
-
-```bash
-helm install claude-code-agent oci://ghcr.io/dwmkerr/charts/claude-code-agent \
-  --set apiKey=$ANTHROPIC_API_KEY
-```
-
-**DevSpace**
-
-```bash
-devspace dev
-devspace dev -p ark  # Ark example with DinD for Kind clusters
-```
+- [Docker](./docs/installation.md#docker) - Run in Docker
+- [DevSpace](./docs/installation.md#devspace-kubernetes-with-live-reload) - Live-reload in Kubernetes
+- [Helm](./docs/installation.md#helm-kubernetes) - Deploy to Kubernetes
+- [Ark](./docs/installation.md#ark) - Deploy on Ark
 
 ## Configuration
 
@@ -302,18 +301,6 @@ docker push dwmkerr/claude-code-agent-base:0.1.2-rc1
 # Update Dockerfile and devspace.yaml to use the RC tag, then iterate
 ```
 
-### Testing with Minikube
-
-```bash
-docker build -t claude-code-agent:local .
-minikube image load claude-code-agent:local
-helm install claude-code-agent ./chart \
-  --set image.repository=claude-code-agent \
-  --set image.tag=local \
-  --set image.pullPolicy=Never \
-  --set apiKey=$ANTHROPIC_API_KEY
-```
-
 ## Test Prompts
 
 > Clone the mckinsey/agents-at-scale-ar repo, build a file called 'issues.md' that has a table of issues/urls/ids/titles and a one line summary for each one. Then suggest a good first issue to work on.
@@ -323,5 +310,20 @@ helm install claude-code-agent ./chart \
 ## Important
 
 Be aware that if you run the agent as a local process with `npm`, then it will inherit your environment. This presents a *significant* security risk - for example if you are logged into the GitHub CLI (`gh`) then the agent will be able to execute GitHub commands with your identity, via the `Bash` tool.
+
+You can run in local development mode with live-reload using `make dev-safe`:
+
+```bash
+# SAFER: Run in local development / live reload mode - but don't inherit the
+# user's environment (e.g. sensitive env vars not accessible to claude).
+make dev-safe
+# Server: http://localhost:2222
+```
+
+Behind the scenes `dev-safe` explicitly excludes the user's environment (this'll ensure your AWS keys or whatever are not passed to the model), i.e:
+
+```bash
+# env -i npm run dev
+```
 
 It is highly recommended that you run the agent in a docker container with `make docker-run` or by checking the [Deploy](#deploy) guide. You can also use `make dev-safe`. Use `make help` for all recipes.
