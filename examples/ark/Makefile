@@ -32,7 +32,7 @@ docker-run: docker-build kind-cleanup # Run the agent with DinD for Kind cluster
 		-v $(ROOT_DIR)/.env:/app/.env:ro \
 		-v $(ROOT_DIR)/examples/ark/workspace:/workspace \
 		-v $(ROOT_DIR)/examples/ark/claude-defaults:/home/claude-code-agent/.claude-defaults:ro \
-		-v $(ROOT_DIR)/examples/ark/.init-session.sh:/.init-session.sh:ro \
+		-v $(ROOT_DIR)/examples/ark/.init-session.sh:/app/.init-session.sh:ro \
 		-e DOCKER_HOST=tcp://ark-dind:2375 \
 		-e CLAUDE_LOG_PATH=/tmp/claude-code-agent-log.jsonl \
 		-e CLAUDE_AGENT_NAME=ark-claude-code-agent \

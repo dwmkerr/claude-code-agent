@@ -1,29 +1,15 @@
-#!/bin/bash
-# Session initialization for Ark example
-# Runs once when a new A2A session starts
+#!/usr/bin/env bash
+set -e -o pipefail
 
-echo "Initializing Ark session: $A2A_SESSION_ID"
+# Session initialization for Ark example.
+# Runs once when a new A2A session starts.
 
-# Add MCP servers dynamically (no config file needed)
-echo "Adding Playwright MCP server..."
+echo "Initializing session: $A2A_SESSION_ID"
+
+# Sanity checks for required tools / config.
+[ -n "$DOCKER_HOST" ] && ! docker info > /dev/null 2>&1 && echo "error: DinD not ready on $DOCKER_HOST" || true
+! kubectl cluster-info > /dev/null 2>&1 && echo "error: kubectl has no cluster access" || true
+echo "dind and kubectl validated"
+
+# Configure MCP servers.
 claude mcp add playwright -- npx @playwright/mcp@latest --browser chromium --headless
-
-# Check DinD connectivity if DOCKER_HOST is set
-if [ -n "$DOCKER_HOST" ]; then
-  echo "Checking DinD connectivity ($DOCKER_HOST)..."
-  if docker info > /dev/null 2>&1; then
-    echo "  DinD: ready"
-  else
-    echo "  DinD: not ready (Kind clusters will fail)"
-  fi
-fi
-
-# Check kubectl access
-echo "Checking kubectl access..."
-if kubectl cluster-info > /dev/null 2>&1; then
-  echo "  kubectl: connected"
-else
-  echo "  kubectl: no cluster access"
-fi
-
-echo "Session initialization complete"
