@@ -280,7 +280,8 @@ export class SpanTransformer {
     }
   }
 
-  end(): void {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  end(_error?: Error): void {
     // No-op - each message creates its own independent span
   }
 }
