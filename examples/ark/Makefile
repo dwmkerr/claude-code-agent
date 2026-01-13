@@ -32,11 +32,11 @@ docker-run: docker-build kind-cleanup # Run the agent with DinD for Kind cluster
 		-v $(ROOT_DIR)/.env:/app/.env:ro \
 		-v $(ROOT_DIR)/examples/ark/workspace:/workspace \
 		-v $(ROOT_DIR)/examples/ark/claude-defaults:/home/claude-code-agent/.claude-defaults:ro \
-		-v $(ROOT_DIR)/examples/ark/mcp-config.json:/config/mcp-config.json:ro \
+		-v $(ROOT_DIR)/examples/ark/.init-session.sh:/.init-session.sh:ro \
 		-e DOCKER_HOST=tcp://ark-dind:2375 \
 		-e CLAUDE_LOG_PATH=/tmp/claude-code-agent-log.jsonl \
 		-e CLAUDE_AGENT_NAME=ark-claude-code-agent \
-		-p 2222:2222 claude-code-agent --claude-defaults-dir /home/claude-code-agent/.claude-defaults -- --mcp-config /config/mcp-config.json --dangerously-skip-permissions
+		-p 2222:2222 claude-code-agent --claude-defaults-dir /home/claude-code-agent/.claude-defaults -- --dangerously-skip-permissions
 	# Cleanup DinD on exit
 	docker rm -f ark-dind 2>/dev/null || true
 
@@ -47,7 +47,6 @@ docker-cleanup: # Clean up DinD container and network.
 
 .PHONY: k8s-configmaps
 k8s-configmaps: # Create ConfigMaps from local files for Claude config.
-	kubectl create configmap ark-mcp-config --from-file=mcp-config.json -o yaml --dry-run=client | kubectl apply -f -
 	kubectl create configmap ark-skill-setup --from-file=claude-defaults/skills/ark-setup/ -o yaml --dry-run=client | kubectl apply -f -
 	kubectl create configmap ark-skill-testing --from-file=claude-defaults/skills/ark-testing/ -o yaml --dry-run=client | kubectl apply -f -
 	kubectl create configmap ark-skill-analysis --from-file=claude-defaults/skills/ark-analysis/ -o yaml --dry-run=client | kubectl apply -f -
@@ -63,5 +62,5 @@ helm-install: k8s-configmaps # Deploy to Kubernetes with Helm.
 .PHONY: helm-uninstall
 helm-uninstall: # Remove Helm deployment and ConfigMaps.
 	helm uninstall ark-agent || true
-	kubectl delete configmap ark-mcp-config ark-skill-setup ark-skill-testing ark-skill-analysis ark-claude-defaults || true
+	kubectl delete configmap ark-skill-setup ark-skill-testing ark-skill-analysis ark-claude-defaults || true
 	kubectl delete -f manifests/a2aserver.yaml || true

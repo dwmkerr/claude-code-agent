@@ -42,8 +42,8 @@ ark query agent/ark-claude-code-agent \
 ## Configuration
 
 ```
-mcp-config.json     # MCP servers (Playwright)
-claude/
+.init-session.sh    # Session setup (adds MCP servers, checks DinD/kubectl)
+claude-defaults/
   CLAUDE.md         # System prompt
   skills/           # ark-setup, ark-dashboard-testing, ark-analysis
 ```
