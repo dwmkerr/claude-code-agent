@@ -1,5 +1,5 @@
 import { loadConfig, loadConfigFile, CliOptions } from './config';
-import { writeFileSync, unlinkSync } from 'fs';
+import { writeFileSync, unlinkSync, chmodSync } from 'fs';
 
 describe('loadConfigFile', () => {
   const testConfigPath = './test-config.yaml';
@@ -174,5 +174,72 @@ server:
     const config = loadConfig();
 
     expect(config.port).toBe(9999);
+  });
+});
+
+describe('loadConfig initSession', () => {
+  const testConfigPath = './test-init-session-config.yaml';
+  const testInitScript = './test-init-session.sh';
+  const originalEnv = { ...process.env };
+
+  beforeEach(() => {
+    delete process.env.INIT_SESSION;
+  });
+
+  afterEach(() => {
+    process.env = { ...originalEnv };
+    try { unlinkSync(testConfigPath); } catch { /* ignore */ }
+    try { unlinkSync(testInitScript); } catch { /* ignore */ }
+    try { unlinkSync('./.init-session.sh'); } catch { /* ignore */ }
+  });
+
+  it('should return null when no init session script exists', () => {
+    const config = loadConfig();
+    expect(config.initSession).toBeNull();
+  });
+
+  it('should auto-detect .init-session.sh when it exists', () => {
+    writeFileSync('./.init-session.sh', '#!/bin/bash\necho "init"');
+
+    const config = loadConfig();
+
+    expect(config.initSession).toContain('.init-session.sh');
+  });
+
+  it('should load initSession from config file', () => {
+    writeFileSync(testInitScript, '#!/bin/bash\necho "test"');
+    writeFileSync(testConfigPath, `
+agent:
+  initSession: "${testInitScript}"
+`);
+
+    const config = loadConfig({ config: testConfigPath });
+
+    expect(config.initSession).toContain('test-init-session.sh');
+  });
+
+  it('should load initSession from INIT_SESSION env var', () => {
+    writeFileSync(testInitScript, '#!/bin/bash\necho "env"');
+    process.env.INIT_SESSION = testInitScript;
+
+    const config = loadConfig();
+
+    expect(config.initSession).toContain('test-init-session.sh');
+  });
+
+  it('should return null if specified init script does not exist', () => {
+    const config = loadConfig({ initSession: './nonexistent-init.sh' });
+
+    expect(config.initSession).toBeNull();
+  });
+
+  it('should override env var with CLI option', () => {
+    writeFileSync(testInitScript, '#!/bin/bash\necho "cli"');
+    writeFileSync('./.init-session.sh', '#!/bin/bash\necho "default"');
+    process.env.INIT_SESSION = './.init-session.sh';
+
+    const config = loadConfig({ initSession: testInitScript });
+
+    expect(config.initSession).toContain('test-init-session.sh');
   });
 });

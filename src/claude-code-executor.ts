@@ -1,4 +1,4 @@
-import { execaNode } from 'execa';
+import { execaNode, execa } from 'execa';
 import { appendFileSync } from 'fs';
 import { v4 as uuidv4 } from 'uuid';
 import chalk from 'chalk';
@@ -101,6 +101,9 @@ export class ClaudeCodeExecutor implements AgentExecutor {
       final: false,
     });
 
+    // Run init session script for new sessions
+    await this.runInitSession(contextId);
+
     // Execute Claude Code
     const messageId = (userMessage as any).messageId || uuidv4();
     try {
@@ -127,6 +130,28 @@ export class ClaudeCodeExecutor implements AgentExecutor {
         },
         final: true,
       });
+    }
+  }
+
+  private async runInitSession(contextId: string): Promise<void> {
+    if (!this.config.initSession) return;
+    if (this.sessions.has(contextId)) return; // Only run for new sessions
+
+    console.log(chalk.cyan(`    ◆ Running init session: ${this.config.initSession}`));
+
+    try {
+      await execa(this.config.initSession, [], {
+        cwd: this.config.workspace,
+        env: {
+          ...process.env,
+          A2A_SESSION_ID: contextId,
+        },
+        timeout: 60000, // 1 minute timeout for init script
+      });
+      console.log(chalk.cyan('    ◆ Init session complete'));
+    } catch (error: any) {
+      console.error(chalk.yellow(`    ⚠ Init session failed: ${error.message}`));
+      // Continue execution - init script failure shouldn't block the session
     }
   }
 

@@ -23,6 +23,8 @@
 
 This project lets you deploy and run the Claude Code agent as a self-contained A2A server. This allows you to deploy Claude Code to different environments and interact with it using a standardised protocol. Isolated workspaces, skills, and various other capabilities can easily be extended.
 
+Each Claude Code session runs in its own [workspace](#workspaces) and sessions can be configured with an [`.init-session.sh`](#session-setup-for-mcp-plugins-etc) script to install MCP servers, plugins, and customise Claude Code's environment.
+
 I am using this agent extensively in my work on [Ark](https://github.com/agents-at-scale-ark) - there are examples on how to build skills, use K8S, playwright, and more, in [`./examples/ark`](./examples/ark).
 
 ## Quickstart
@@ -127,7 +129,7 @@ cd a2a-inspector && ./scripts/run.sh
 
 ## Installation
 
-See [Installation Guide](./docs/installation.md) for:
+See [Installation Guide](./docs/installation.md) for all installation options, including:
 
 - [Docker](./docs/installation.md#docker) - Run in Docker
 - [DevSpace](./docs/installation.md#devspace-kubernetes-with-live-reload) - Live-reload in Kubernetes
@@ -163,13 +165,14 @@ claude-code-agent -- --mcp-config /config/mcp.json --allowedTools Bash,Read
 | `CLAUDE_CODE_WORKSPACE_DIR` | Working directory | `./workspace` (local) or `/workspace` (docker/helm) |
 | `CLAUDE_AGENT_NAME` | Agent name for A2A registration | `claude-code` |
 | `CLAUDE_LOG_PATH` | File path for JSONL chunk logs | - (disabled) |
+| `INIT_SESSION` | Session init script path | `./.init-session.sh` (auto-detected) |
 | `HOST` | Server host | `0.0.0.0` |
 | `PORT` | Server port | `2222` |
 | `FORCE_COLOR` | Enable colors in logs | `1` |
 
 CLI options override environment variables.
 
-### Workspace
+### Workspaces
 
 Claude operates in `./workspace` locally or `/workspace` in containers. Override with `CLAUDE_CODE_WORKSPACE_DIR`.
 
@@ -185,6 +188,33 @@ docker run -v ./workspace:/workspace ...
 helm install ... --set workspace.persistence.enabled=true
 ```
 
+### Session Setup for MCP, Plugins, etc
+
+You can configure each Claude Code session with a `.init-session.sh` script. This script runs automatically when a new session starts in a workspace, allowing you to set up MCP servers, marketplace plugins, and project-specific configuration.
+
+**Default:** `./.init-session.sh` (auto-detected if present)
+**Override:** `--init-session <path>` or config file `agent.initSession`
+
+Example `.init-session.sh`:
+
+```bash
+#!/bin/bash
+echo "Configuring Claude Code for A2A session: $A2A_SESSION_ID"
+
+# Add MCP servers
+claude mcp add shellwright -- npx -y @dwmkerr/shellwright
+
+# Add marketplace plugins
+claude plugin marketplace add dwmkerr/claude-toolkit
+claude plugin install toolkit@claude-toolkit
+
+# Clone project-specific CLAUDE.md instructions
+git clone --depth 1 https://github.com/myorg/claude-configs /tmp/configs
+cp /tmp/configs/CLAUDE.md .claude/
+```
+
+The `A2A_SESSION_ID` environment variable is available to identify the current session.
+
 ### Tools
 
 Claude code runs in a container, with a number of tools such as `curl`, `wget`, etc installed. Check these tools or extend by editing [`Dockerfile`](./Dockerfile).
@@ -192,6 +222,8 @@ Claude code runs in a container, with a number of tools such as `curl`, `wget`, 
 If tools require configuration, config files or env vars can be passed to the container. For example, to ensure that the `gh` CLI can be used, pass a `GH_TOKEN` by either setting in `.env` or explicitly pass the environment variable. See the [important note on risk](#important).
 
 ### MCP Servers
+
+> **Tip:** Consider using [Session Setup](#session-setup-for-mcp-plugins-etc) for a simpler, scripted approach.
 
 Configure MCP servers by passing `--mcp-config` via the CLI passthrough:
 
