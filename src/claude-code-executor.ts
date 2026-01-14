@@ -137,6 +137,7 @@ export class ClaudeCodeExecutor implements AgentExecutor {
     if (!this.config.initSession) return;
     if (this.sessions.has(contextId)) return; // Only run for new sessions
 
+    console.log('');
     console.log(chalk.cyan(`    ◆ Running init session: ${this.config.initSession}`));
 
     try {
@@ -150,6 +151,7 @@ export class ClaudeCodeExecutor implements AgentExecutor {
         stdio: 'inherit', // Show script output for debugging
       });
       console.log(chalk.cyan('    ◆ Init session complete'));
+      console.log('');
     } catch (error: any) {
       console.error(chalk.yellow(`    ⚠ Init session failed: ${error.message}`));
       // Continue execution - init script failure shouldn't block the session
