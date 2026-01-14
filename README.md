@@ -204,11 +204,11 @@ set -e -o pipefail
 echo "Initializing session: $A2A_SESSION_ID"
 
 # Add MCP servers.
-claude mcp add shellwright -- npx -y @dwmkerr/shellwright
+claude mcp add shellwright -- npx -y @dwmkerr/shellwright || true
 
 # Add marketplace plugins (can include skills, agents, commands, etc).
-claude plugin marketplace add dwmkerr/claude-toolkit
-claude plugin install toolkit@claude-toolkit
+claude plugin marketplace add dwmkerr/claude-toolkit || true
+claude plugin install toolkit@claude-toolkit || true
 
 # Set up CLAUDE.md - choose one approach:
 # Option 1: Fetch from URL

@@ -11,11 +11,11 @@ echo "Initializing session: $A2A_SESSION_ID"
 ! kubectl cluster-info > /dev/null 2>&1 && echo "note: kubectl has no cluster access (use kind-setup skill)" || true
 
 # Configure MCP servers.
-claude mcp add playwright -- npx @playwright/mcp@latest --browser chromium --headless
+claude mcp add playwright -- npx @playwright/mcp@latest --browser chromium --headless || true
 
 # Install Ark skills and agents from marketplace.
-claude plugin marketplace add mckinsey/agents-at-scale-ark
-claude plugin install ark@agents-at-scale-ark
+claude plugin marketplace add mckinsey/agents-at-scale-ark || true
+claude plugin install ark@agents-at-scale-ark || true
 
 # Set up CLAUDE.md with Ark-specific instructions.
 mkdir -p .claude
