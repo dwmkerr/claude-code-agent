@@ -147,6 +147,7 @@ export class ClaudeCodeExecutor implements AgentExecutor {
           A2A_SESSION_ID: contextId,
         },
         timeout: 60000, // 1 minute timeout for init script
+        stdio: 'inherit', // Show script output for debugging
       });
       console.log(chalk.cyan('    ◆ Init session complete'));
     } catch (error: any) {

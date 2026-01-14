@@ -198,22 +198,31 @@ You can configure each Claude Code session with a `.init-session.sh` script. Thi
 Example `.init-session.sh`:
 
 ```bash
-#!/bin/bash
-echo "Configuring Claude Code for A2A session: $A2A_SESSION_ID"
+#!/usr/bin/env bash
+set -e -o pipefail
 
-# Add MCP servers
+echo "Initializing session: $A2A_SESSION_ID"
+
+# Add MCP servers.
 claude mcp add shellwright -- npx -y @dwmkerr/shellwright
 
-# Add marketplace plugins
+# Add marketplace plugins (can include skills, agents, commands, etc).
 claude plugin marketplace add dwmkerr/claude-toolkit
 claude plugin install toolkit@claude-toolkit
 
-# Clone project-specific CLAUDE.md instructions
-git clone --depth 1 https://github.com/myorg/claude-configs /tmp/configs
-cp /tmp/configs/CLAUDE.md .claude/
+# Set up CLAUDE.md - choose one approach:
+# Option 1: Fetch from URL
+# curl -s https://example.com/CLAUDE.md > .claude/CLAUDE.md
+
+# Option 2: Heredoc for inline configuration
+# mkdir -p .claude
+# cat > .claude/CLAUDE.md << 'EOF'
+# # Agent Instructions
+# Your custom instructions here.
+# EOF
 ```
 
-The `A2A_SESSION_ID` environment variable is available to identify the current session.
+The `A2A_SESSION_ID` environment variable identifies the current session.
 
 ### Tools
 

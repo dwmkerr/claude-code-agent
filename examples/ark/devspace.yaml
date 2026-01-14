@@ -51,7 +51,7 @@ dev:
       - |
         cd /app
         npm install
-        npx tsx watch src/main.ts --claude-defaults-dir /home/claude-code-agent/.claude-defaults -- --dangerously-skip-permissions
+        npx tsx watch src/main.ts -- --dangerously-skip-permissions
     logs:
       lastLines: 50
     sync:
@@ -68,6 +68,3 @@ dev:
           - "**/.devspace"
           - "**/dist"
           - "**/__pycache__"
-      # Sync claude-defaults (CLAUDE.md, skills) - copied to ~/.claude/ on startup
-      - path: ./claude-defaults:/home/claude-code-agent/.claude-defaults
-        disableDownload: true
