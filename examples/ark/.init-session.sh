@@ -10,12 +10,14 @@ echo "Initializing session: $A2A_SESSION_ID"
 [ -n "$DOCKER_HOST" ] && ! docker info > /dev/null 2>&1 && echo "note: DinD not ready on $DOCKER_HOST" || true
 ! kubectl cluster-info > /dev/null 2>&1 && echo "note: kubectl has no cluster access (use kind-setup skill)" || true
 
-# Configure MCP servers.
-claude mcp add playwright -- npx @playwright/mcp@latest --browser chromium --headless || true
+# Add MCP servers (project scope).
+# These may fail locally if already installed at user scope - that's ok.
+claude mcp add --scope project playwright -- npx @playwright/mcp@latest --browser chromium --headless || true
 
-# Install Ark skills and agents from marketplace.
+# Add marketplace plugins (project scope).
+# These may fail locally if already installed at user scope - that's ok.
 claude plugin marketplace add mckinsey/agents-at-scale-ark || true
-claude plugin install ark@agents-at-scale-ark || true
+claude plugin install --scope project ark@agents-at-scale-ark || true
 
 # Set up CLAUDE.md with Ark-specific instructions.
 mkdir -p .claude

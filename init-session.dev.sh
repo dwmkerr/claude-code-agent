@@ -6,14 +6,15 @@ set -e -o pipefail
 
 echo "Initializing dev session: $A2A_SESSION_ID"
 
-# Add MCP servers for development.
-claude mcp add shellwright -- npx -y @dwmkerr/shellwright || true
-claude mcp add playwright -- npx @playwright/mcp@latest --browser chromium --headless || true
+# Add MCP servers (project scope).
+# These may fail locally if already installed at user scope - that's ok.
+claude mcp add --scope project shellwright -- npx -y @dwmkerr/shellwright || true
+claude mcp add --scope project playwright -- npx @playwright/mcp@latest --browser chromium --headless || true
 
-# Add marketplace plugins (can include skills, agents, commands, etc).
-# Use || true for marketplace add - "already installed" is not an error.
+# Add marketplace plugins (project scope).
+# These may fail locally if already installed at user scope - that's ok.
 claude plugin marketplace add dwmkerr/claude-toolkit || true
-claude plugin install toolkit@claude-toolkit || true
+claude plugin install --scope project toolkit@claude-toolkit || true
 
 # Set up CLAUDE.md for development.
 # mkdir -p .claude
