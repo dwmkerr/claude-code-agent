@@ -14,10 +14,10 @@ echo "Initializing session: $A2A_SESSION_ID"
 # These may fail locally if already installed at user scope - that's ok.
 claude mcp add --scope project playwright -- npx @playwright/mcp@latest --browser chromium --headless || true
 
-# Add ark plugin from local path (project scope).
+# Add ark-example plugin from this repo (project scope).
 # These may fail locally if already installed at user scope - that's ok.
-claude plugin marketplace add /app/examples/ark-plugin || true
-claude plugin install --scope project ark@ark-plugin || true
+claude plugin marketplace add dwmkerr/claude-code-agent || true
+claude plugin install --scope project ark-example@claude-code-agent || true
 
 # Set up CLAUDE.md with Ark-specific instructions.
 mkdir -p .claude

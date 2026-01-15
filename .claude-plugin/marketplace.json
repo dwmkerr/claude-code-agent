@@ -1,13 +1,13 @@
 {
-  "name": "ark-plugin",
+  "name": "claude-code-agent",
   "owner": {
     "name": "dwmkerr"
   },
   "plugins": [
     {
-      "name": "ark",
-      "source": ".",
-      "description": "Ark PR reviewer agent and supporting skills for testing PRs with Kind, devspace, and Playwright",
+      "name": "ark-example",
+      "source": "./examples/ark-plugin",
+      "description": "Example Ark PR reviewer agent and supporting skills for testing PRs with Kind, devspace, and Playwright",
       "version": "0.1.0",
       "agents": [
         "./agents/ark-pr-reviewer.md"
