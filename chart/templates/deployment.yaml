@@ -61,28 +61,14 @@ spec:
             httpGet:
               path: /health
               port: http
-          {{- if or .Values.claude.claudeDefaultsConfigMap .Values.extraVolumeMounts }}
+          {{- with .Values.extraVolumeMounts }}
           volumeMounts:
-            {{- if .Values.claude.claudeDefaultsConfigMap }}
-            - name: claude-defaults
-              mountPath: /home/claude-code-agent/.claude-defaults
-              readOnly: true
-            {{- end }}
-            {{- with .Values.extraVolumeMounts }}
             {{- toYaml . | nindent 12 }}
-            {{- end }}
           {{- end }}
       {{- with .Values.extraContainers }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- if or .Values.claude.claudeDefaultsConfigMap .Values.extraVolumes }}
+      {{- with .Values.extraVolumes }}
       volumes:
-        {{- if .Values.claude.claudeDefaultsConfigMap }}
-        - name: claude-defaults
-          configMap:
-            name: {{ .Values.claude.claudeDefaultsConfigMap }}
-        {{- end }}
-        {{- with .Values.extraVolumes }}
         {{- toYaml . | nindent 8 }}
-        {{- end }}
       {{- end }}

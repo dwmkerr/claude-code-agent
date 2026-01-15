@@ -251,37 +251,6 @@ helm install ... \
   --set envFrom[0].secretRef.optional=true
 ```
 
-### Claude Configuration
-
-Optionally mount config files to `/home/claude-code-agent/.claude-defaults/`:
-
-```
-.claude-defaults/    # Will be copied to ~/.claude on startup
-├── settings.json    # Settings, plugins, MCP servers
-├── CLAUDE.md        # Instructions
-├── commands/        # Custom slash commands
-└── skills/          # User skills (see Skills section below)
-```
-
-Claude Code writes to `~/.claude/` during operation, so direct mounts can fail due to permissions or corrupt your local files. The `claude-defaults` directory provides a safer approach - files are copied on startup.
-
-## Skills
-
-Claude Code loads skills from two locations:
-
-- **User skills**: `~/.claude/skills/` - Global skills, always available
-- **Project skills**: `workspace/.claude/skills/` - Repo-specific skills
-
-For containers, mount skills to the user directory:
-
-```bash
-# Docker - mount skills to user directory
-docker run -v /path/to/skills:/home/claude-code-agent/.claude/skills:ro ...
-
-# See examples/ark/ for a complete example with skills
-cd examples/ark && make run
-```
-
 ## Examples
 
 See [`examples/`](./examples/) for usage examples:
