@@ -34,10 +34,6 @@ deployments:
         env:
           GH_TOKEN: "${GH_TOKEN}"
           INIT_SESSION: /app/examples/ark/.init-session.sh
-        # Override: don't use ConfigMaps in dev mode, devspace syncs files directly
-        claude:
-          claudeDefaultsConfigMap: ""
-          skills: []
 
 dev:
   claude-agent:
