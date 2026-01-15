@@ -153,7 +153,7 @@ Options:
   --agent-name <name>      Agent name for A2A registration
 
 # Pass any Claude Code args after --
-claude-code-agent -- --mcp-config /config/mcp.json --allowedTools Bash,Read
+claude-code-agent -- --allowedTools Bash,Read
 ```
 
 ### Environment Variables
@@ -231,33 +231,6 @@ The `A2A_SESSION_ID` environment variable identifies the current session.
 Claude code runs in a container, with a number of tools such as `curl`, `wget`, etc installed. Check these tools or extend by editing [`Dockerfile`](./Dockerfile).
 
 If tools require configuration, config files or env vars can be passed to the container. For example, to ensure that the `gh` CLI can be used, pass a `GH_TOKEN` by either setting in `.env` or explicitly pass the environment variable. See the [important note on risk](#important).
-
-### MCP Servers
-
-> **Tip:** Consider using [Session Setup](#session-setup-for-mcp-plugins-etc) for a simpler, scripted approach.
-
-Configure MCP servers by passing `--mcp-config` via the CLI passthrough:
-
-```bash
-# Docker - mount config and pass to Claude
-docker run -v ./mcp.json:/config/mcp.json:ro \
-  ... claude-code-agent -- --mcp-config /config/mcp.json
-
-# Example mcp.json
-{
-  "mcpServers": {
-    "playwright": {
-      "type": "stdio",
-      "command": "npx",
-      "args": ["@playwright/mcp@latest"]
-    }
-  }
-}
-```
-
-> **Note:** Mount the config to a separate location (e.g., `/config/`) rather than directly to `~/.claude.json`. Mounting directly to the Claude home directory can cause permissions issues since Claude Code needs to write to that location.
-
-See [`examples/ark/`](./examples/ark/) for a complete example with MCP servers.
 
 ### Telemetry (OpenTelemetry)
 

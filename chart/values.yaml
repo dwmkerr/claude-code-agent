@@ -41,9 +41,6 @@ claude:
   # Use this for CLAUDE.md, settings.json, skills/, and agents/
   claudeDefaultsConfigMap: ""
 
-  # ConfigMap containing mcp-config.json (key must be "mcp-config.json")
-  mcpConfigMap: ""
-
   # Extra CLI args passed to Claude Code (after --)
   args: []
   #   - "--model"

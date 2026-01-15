@@ -70,8 +70,6 @@ claudeArgs: []
 
 # Example:
 # claudeArgs:
-#  - "--mcp-config"
-#  - "/config/mcp.json"
 #  - "--allowedTools"
 #  - "Bash,Read"
 

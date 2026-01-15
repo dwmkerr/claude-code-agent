@@ -380,8 +380,8 @@ export class ClaudeCodeExecutor implements AgentExecutor {
       args.push('--resume', sessionId);
     }
 
-    // Append passthrough args from CLI (e.g., --mcp-config)
-    // These come last so they can override defaults above
+    // Append passthrough args from CLI.
+    // These come last so they can override defaults above.
     if (this.config.claudeArgs.length > 0) {
       args.push(...this.config.claudeArgs);
     }

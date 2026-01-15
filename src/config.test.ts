@@ -29,8 +29,8 @@ agent:
 logging:
   path: "/var/log/claude.log"
 claudeArgs:
-  - "--mcp-config"
-  - "/config/mcp.json"
+  - "--allowedTools"
+  - "Bash,Read"
 `);
 
     const result = loadConfigFile(testConfigPath);
@@ -42,7 +42,7 @@ claudeArgs:
     expect(result?.agent?.workspace).toBe('/test/workspace');
     expect(result?.agent?.timeout).toBe(7200);
     expect(result?.logging?.path).toBe('/var/log/claude.log');
-    expect(result?.claudeArgs).toEqual(['--mcp-config', '/config/mcp.json']);
+    expect(result?.claudeArgs).toEqual(['--allowedTools', 'Bash,Read']);
   });
 
   it('should skip invalid YAML files', () => {
@@ -149,15 +149,15 @@ server:
   it('should merge claudeArgs from file and CLI', () => {
     writeFileSync(testConfigPath, `
 claudeArgs:
-  - "--mcp-config"
-  - "/config/mcp.json"
+  - "--model"
+  - "opus"
 `);
 
     const config = loadConfig({ config: testConfigPath }, ['--allowedTools', 'Bash']);
 
     expect(config.claudeArgs).toEqual([
-      '--mcp-config',
-      '/config/mcp.json',
+      '--model',
+      'opus',
       '--allowedTools',
       'Bash',
     ]);
