@@ -11,11 +11,13 @@ echo "Initializing session: $A2A_SESSION_ID"
 ! kubectl cluster-info > /dev/null 2>&1 && echo "note: kubectl has no cluster access (use kind-setup skill)" || true
 
 # Add MCP servers (project scope).
-# These may fail locally if already installed at user scope - that's ok.
+# This may fail locally if already installed at user scope.
+# Better would be to grep the error to see if it is 'already installed', warn
+# in that case and then fail on any other error.
 claude mcp add --scope project playwright -- npx @playwright/mcp@latest --browser chromium --headless || true
 
-# Add ark-example plugin from this repo (project scope).
-# These may fail locally if already installed at user scope - that's ok.
+# Install the "ark-example" plugin from this repo's marketplace.
+# Skills and agents are in ./examples/ark/plugin (see .claude-plugin/README.md).
 claude plugin marketplace add dwmkerr/claude-code-agent || true
 claude plugin install --scope project ark-example@claude-code-agent || true
 
