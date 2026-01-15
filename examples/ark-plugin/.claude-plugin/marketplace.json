@@ -1,0 +1,24 @@
+{
+  "name": "ark-plugin",
+  "owner": {
+    "name": "dwmkerr"
+  },
+  "plugins": [
+    {
+      "name": "ark",
+      "source": ".",
+      "description": "Ark PR reviewer agent and supporting skills for testing PRs with Kind, devspace, and Playwright",
+      "version": "0.1.0",
+      "agents": [
+        "./agents/ark-pr-reviewer.md"
+      ],
+      "skills": [
+        "./skills/ark-dashboard-test/SKILL.md",
+        "./skills/ark-devspace/SKILL.md",
+        "./skills/ark-install/SKILL.md",
+        "./skills/github-attach-images/SKILL.md",
+        "./skills/kind-setup/SKILL.md"
+      ]
+    }
+  ]
+}
