@@ -11,8 +11,8 @@
     "prepare": "npm run build",
     "build": "tsc",
     "start": "node dist/main.js",
-    "dev": "tsx watch src/main.ts",
-    "dev:otel-unsafe": "OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:6006 tsx watch src/main.ts -c claude-code-agent.otel-unsafe.yaml -- --dangerously-skip-permissions",
+    "dev": "INIT_SESSION=./init-session.dev.sh tsx watch src/main.ts",
+    "dev:otel-unsafe": "INIT_SESSION=./init-session.dev.sh OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:6006 tsx watch src/main.ts -c claude-code-agent.otel-unsafe.yaml -- --dangerously-skip-permissions",
     "test": "jest",
     "lint": "eslint src/**/*.ts"
   },

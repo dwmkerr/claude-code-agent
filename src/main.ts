@@ -56,6 +56,7 @@ program
   .option('--timeout <seconds>', 'execution timeout in seconds', parseInt)
   .option('--log-path <path>', 'path to write Claude output logs')
   .option('--agent-name <name>', 'agent name for A2A registration')
+  .option('--init-session <path>', 'session init script path')
   .option('--claude-defaults-dir <path>', 'copy contents to ~/.claude on startup')
   .allowUnknownOption()
   .allowExcessArguments()
@@ -74,6 +75,7 @@ const cliOptions: CliOptions = {
   timeout: opts.timeout,
   logPath: opts.logPath,
   agentName: opts.agentName,
+  initSession: opts.initSession,
   config: opts.config,
 };
 
@@ -165,6 +167,9 @@ const server = app.listen(config.port, config.host, () => {
     copiedDefaults.forEach(f => console.log(`  ${f}`));
   }
   console.log(`Workspace: ${config.workspace}`);
+  if (config.initSession) {
+    console.log(`Init session: ${config.initSession}`);
+  }
   if (config.logPath) {
     console.log(`Log: ${config.logPath}`);
   }

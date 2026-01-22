@@ -11,13 +11,6 @@ vars:
     source: input
     question: "Enter your GitHub token (or run 'gh auth token'):"
 
-hooks:
-  - name: create-configmaps
-    events: ["before:deploy", "before:dev"]
-    command: |-
-      echo "Creating ConfigMaps for Claude config..."
-      kubectl create configmap ark-mcp-config --from-file=mcp-config.json -o yaml --dry-run=client | kubectl apply -f -
-
 pipelines:
   deploy: |-
     create_deployments --all
@@ -40,10 +33,7 @@ deployments:
         apiKey: ${ANTHROPIC_API_KEY}
         env:
           GH_TOKEN: "${GH_TOKEN}"
-        # Override: don't use ConfigMaps in dev mode, devspace syncs files directly
-        claude:
-          claudeDefaultsConfigMap: ""
-          skills: []
+          INIT_SESSION: /app/examples/ark/.init-session.sh
 
 dev:
   claude-agent:
@@ -57,7 +47,7 @@ dev:
       - |
         cd /app
         npm install
-        npx tsx watch src/main.ts --claude-defaults-dir /home/claude-code-agent/.claude-defaults -- --mcp-config /config/mcp-config.json --dangerously-skip-permissions
+        npx tsx watch src/main.ts -- --dangerously-skip-permissions
     logs:
       lastLines: 50
     sync:
@@ -74,6 +64,3 @@ dev:
           - "**/.devspace"
           - "**/dist"
           - "**/__pycache__"
-      # Sync claude-defaults (CLAUDE.md, skills) - copied to ~/.claude/ on startup
-      - path: ./claude-defaults:/home/claude-code-agent/.claude-defaults
-        disableDownload: true

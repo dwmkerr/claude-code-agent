@@ -4,17 +4,8 @@
 #   make helm-install   OR   devspace dev
 
 claude:
-  claudeDefaultsConfigMap: ark-claude-defaults
-  mcpConfigMap: ark-mcp-config
   args:
     - "--dangerously-skip-permissions"
-  skills:
-    - name: ark-setup
-      configMap: ark-skill-setup
-    - name: ark-testing
-      configMap: ark-skill-testing
-    - name: ark-analysis
-      configMap: ark-skill-analysis
 
 env:
   CLAUDE_AGENT_NAME: ark-claude-code-agent

@@ -32,18 +32,8 @@ env:
 #       optional: true
 envFrom: []
 
-# Claude Code configuration via ConfigMaps
-#
-# Create from a directory: kubectl create configmap my-defaults --from-file=./claude-defaults/
-# This mounts to ~/.claude-defaults/ and copies to ~/.claude/ on startup
+# Claude Code configuration
 claude:
-  # ConfigMap containing claude-defaults files (mounted to ~/.claude-defaults/)
-  # Use this for CLAUDE.md, settings.json, skills/, and agents/
-  claudeDefaultsConfigMap: ""
-
-  # ConfigMap containing mcp-config.json (key must be "mcp-config.json")
-  mcpConfigMap: ""
-
   # Extra CLI args passed to Claude Code (after --)
   args: []
   #   - "--model"

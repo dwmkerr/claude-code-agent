@@ -12,6 +12,7 @@ export interface ConfigFile {
     name?: string;
     workspace?: string;
     timeout?: number;
+    initSession?: string;
   };
   logging?: {
     path?: string | null;
@@ -34,6 +35,7 @@ export interface Config {
   timeoutSeconds: number;
   logPath: string | null;
   agentName: string;
+  initSession: string | null;
   claudeArgs: string[];
   otel: {
     tracing: {
@@ -51,6 +53,7 @@ export interface CliOptions {
   timeout?: number;
   logPath?: string;
   agentName?: string;
+  initSession?: string;
   config?: string;
 }
 
@@ -71,6 +74,26 @@ function getWorkspace(cliWorkspace?: string, fileWorkspace?: string): string {
     return resolve(fileWorkspace);
   }
   return isContainer() ? '/workspace' : resolve('./workspace');
+}
+
+// Get init session script path
+// Priority: CLI > env > file > ./.init-session.sh (auto-detect)
+function getInitSession(cliInitSession?: string, fileInitSession?: string): string | null {
+  if (cliInitSession) {
+    const resolved = resolve(cliInitSession);
+    return existsSync(resolved) ? resolved : null;
+  }
+  if (process.env.INIT_SESSION) {
+    const resolved = resolve(process.env.INIT_SESSION);
+    return existsSync(resolved) ? resolved : null;
+  }
+  if (fileInitSession) {
+    const resolved = resolve(fileInitSession);
+    return existsSync(resolved) ? resolved : null;
+  }
+  // Auto-detect default
+  const defaultPath = resolve('./.init-session.sh');
+  return existsSync(defaultPath) ? defaultPath : null;
 }
 
 // Find and load config file
@@ -126,6 +149,7 @@ export function loadConfig(cliOptions: CliOptions = {}, claudeArgs: string[] = [
       || process.env.CLAUDE_AGENT_NAME
       || fileConfig?.agent?.name
       || 'claude-code',
+    initSession: getInitSession(cliOptions.initSession, fileConfig?.agent?.initSession),
 
     // Claude args: config file args first, then CLI args appended
     claudeArgs: [...(fileConfig?.claudeArgs || []), ...claudeArgs],

@@ -47,6 +47,13 @@ agent:
   # Default: 3600 (1 hour)
   timeout: 3600
 
+  # Session initialization script
+  # Runs when a new session starts to configure MCP servers, plugins, etc.
+  # CLI: --init-session
+  # Env: INIT_SESSION
+  # Default: ./.init-session.sh (auto-detected if present)
+  # initSession: "./.init-session.sh"
+
 # Logging configuration
 logging:
   # Path to write Claude output logs
@@ -63,8 +70,6 @@ claudeArgs: []
 
 # Example:
 # claudeArgs:
-#  - "--mcp-config"
-#  - "/config/mcp.json"
 #  - "--allowedTools"
 #  - "Bash,Read"
 
