@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.1.4](https://github.com/dwmkerr/claude-code-agent/compare/v0.1.3...v0.1.4) (2026-01-22)
+
+
+### Features
+
+* add experimental OTEL tracing with Phoenix integration ([#19](https://github.com/dwmkerr/claude-code-agent/issues/19)) ([2ca19e8](https://github.com/dwmkerr/claude-code-agent/commit/2ca19e898a24e613076c1539ea7f9c8ee9d6d3bf))
+* add session initialization script support ([#27](https://github.com/dwmkerr/claude-code-agent/issues/27)) ([c23d1bc](https://github.com/dwmkerr/claude-code-agent/commit/c23d1bc2af4af6f5b37fc7181c443e9f3157d506))
+* add YAML config file support ([#17](https://github.com/dwmkerr/claude-code-agent/issues/17)) ([1a02736](https://github.com/dwmkerr/claude-code-agent/commit/1a02736c514787bd67fc95fd691fb6ab3472270c))
+
+
+### Bug Fixes
+
+* restore error parameter in SpanTransformer.end() ([#26](https://github.com/dwmkerr/claude-code-agent/issues/26)) ([fcf19bb](https://github.com/dwmkerr/claude-code-agent/commit/fcf19bb7d756c24b2bd2860e5c6c1d09b336d63e))
+
 ## [0.1.3](https://github.com/dwmkerr/claude-code-agent/compare/v0.1.2...v0.1.3) (2026-01-08)
 
 
